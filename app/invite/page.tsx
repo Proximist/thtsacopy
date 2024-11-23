@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
 import './invite.css'
+import '../globals.css'
 
 declare global {
   interface Window {
@@ -83,12 +84,12 @@ export default function Invite() {
     }
   }
 
+  // Add dark mode classes to elements
   const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
   const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
   const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
   const titleClass = `title ${isDarkMode ? 'dark-mode' : ''}`
   const inviteButtonClass = `inviteButton ${buttonState} ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedByClass = `invitedBy ${isDarkMode ? 'dark-mode' : ''}`
   const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
   const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
   const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
@@ -96,7 +97,8 @@ export default function Invite() {
   const notificationClass = `notification ${isDarkMode ? 'dark-mode' : ''}`
   const footerContainerClass = `footerContainer ${isDarkMode ? 'dark-mode' : ''}`
   const footerLinkClass = `footerLink ${isDarkMode ? 'dark-mode' : ''}`
-  const activeFooterLinkClass = `footerLink active ${isDarkMode ? 'dark-mode' : ''}`
+  const activeFooterLinkClass = `footerLink activeFooterLink ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedByClass = `invitedBy ${isDarkMode ? 'dark-mode' : ''}`
 
   return (
     <div className={containerClass}>
@@ -202,4 +204,3 @@ export default function Invite() {
     </div>
   )
 }
-
