@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
         points: true,
         invitedUsers: true,
         invitedBy: true,
-        isOnline: true,
         currentTime: true
       }
     });
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
             }
           });
 
-          // Award 2500 points to the inviter
+          // Award 1000 points to the inviter
           await prisma.user.update({
             where: { telegramId: inviterId },
             data: {
@@ -56,6 +55,17 @@ export async function POST(req: NextRequest) {
               points: {
                 increment: 2500
               }
+            }
+          });
+        } else {
+          user = await prisma.user.create({
+            data: {
+              telegramId: userData.id,
+              username: userData.username || '',
+              firstName: userData.first_name || '',
+              lastName: userData.last_name || '',
+              isOnline: true,
+              currentTime: new Date()
             }
           });
         }
@@ -71,34 +81,19 @@ export async function POST(req: NextRequest) {
           }
         });
       }
-    } else {
-      // Update user's online status and current time
-      user = await prisma.user.update({
-        where: { telegramId: userData.id },
-        data: {
-          isOnline: true,
-          currentTime: new Date()
-        }
-      });
     }
 
     let inviterInfo = null;
-    if (user.invitedBy) {
-      inviterInfo = await prisma.user.findFirst({
-        where: { 
-          OR: [
-            { username: user.invitedBy.replace('@', '') },
-            { telegramId: parseInt(user.invitedBy.replace('@', '')) }
-          ]
-        },
+    if (inviterId) {
+      inviterInfo = await prisma.user.findUnique({
+        where: { telegramId: inviterId },
         select: { username: true, firstName: true, lastName: true }
       });
     }
 
-    return NextResponse.json({ user, inviterInfo });
+    return NextResponse.json({ user, inviterInfo});
   } catch (error) {
-    console.error('Error in user API:', error);
+    console.error('Error processing user data:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
