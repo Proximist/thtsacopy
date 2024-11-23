@@ -83,7 +83,7 @@ export default function Invite() {
             setNotification('')
             setIsCopied(false)
           }, 300)
-        }, 200000)
+        }, 2000)
       }).catch(err => {
         console.error('Failed to copy: ', err)
         setNotification('Failed to copy invite link. Please try again.')
@@ -269,12 +269,6 @@ export default function Invite() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 1.8 }}
       >
-        <Link href="/">
-          <a className={footerLinkClass}>
-            <i className="fas fa-home"></i>
-            <span>Home</span>
-          </a>
-        </Link>
         <Link href="/invite">
           <a className={activeFooterLinkClass}>
             <i className="fas fa-users"></i>
@@ -291,12 +285,6 @@ export default function Invite() {
           <a className={footerLinkClass}>
             <i className="fas fa-clipboard"></i>
             <span>Tasks</span>
-          </a>
-        </Link>
-         <Link href="/timer">
-          <a className={footerLinkClass}>
-            <i className="fas fa-calendar"></i>
-            <span>Event</span>
           </a>
         </Link>
       </motion.div>
