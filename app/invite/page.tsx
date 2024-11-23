@@ -122,74 +122,74 @@ export default function Invite() {
   }, [notification, notificationAnimation])
 
   const particlesOptions = {
-    background: {
-      color: {
-        value: isDarkMode ? "#0F172A" : "#E2E8F0",
-      },
+  background: {
+    color: {
+      value: isDarkMode ? "#0F172A" : "#E2E8F0",
     },
-    fpsLimit: 60,
-    interactivity: {
-      events: {
-        onClick: {
-          enable: true,
-          mode: "push",
-        },
-        onHover: {
-          enable: true,
-          mode: "repulse",
-        },
-        resize: true,
-      },
-      modes: {
-        push: {
-          quantity: 4,
-        },
-        repulse: {
-          distance: 200,
-          duration: 0.4,
-        },
-      },
-    },
-    particles: {
-      color: {
-        value: isDarkMode ? "#4B5563" : "#94A3B8",
-      },
-      links: {
-        color: isDarkMode ? "#4B5563" : "#94A3B8",
-        distance: 150,
+  },
+  fpsLimit: 60,
+  interactivity: {
+    events: {
+      onClick: {
         enable: true,
-        opacity: 0.5,
-        width: 1,
+        mode: "push",
       },
-      move: {
-        direction: "none",
+      onHover: {
         enable: true,
-        outModes: {
-          default: "bounce",
-        },
-        random: false,
-        speed: 2,
-        straight: false,
+        mode: "repulse",
       },
-      number: {
-        density: {
-          enable: true,
-          area: 800,
-        },
-        value: 80,
+      resize: true,
+    },
+    modes: {
+      push: {
+        quantity: 4,
       },
-      opacity: {
-        value: 0.5,
-      },
-      shape: {
-        type: "circle",
-      },
-      size: {
-        value: { min: 1, max: 5 },
+      repulse: {
+        distance: 200,
+        duration: 0.4,
       },
     },
-    detectRetina: true,
-  }
+  },
+  particles: {
+    color: {
+      value: isDarkMode ? "#4B5563" : "#94A3B8",
+    },
+    links: {
+      color: isDarkMode ? "#4B5563" : "#94A3B8",
+      distance: 150,
+      enable: true,
+      opacity: 0.5,
+      width: 1,
+    },
+    move: {
+      direction: "none",  // This is correct, but TypeScript may need further clarification.
+      enable: true,
+      outModes: {
+        default: "bounce",
+      },
+      random: false,
+      speed: 2,
+      straight: false,
+    },
+    number: {
+      density: {
+        enable: true,
+        area: 800,
+      },
+      value: 80,
+    },
+    opacity: {
+      value: 0.5,
+    },
+    shape: {
+      type: "circle",
+    },
+    size: {
+      value: { min: 1, max: 5 },
+    },
+  },
+  detectRetina: true,
+}
 
   return (
     <div className={`container ${isDarkMode ? 'dark-mode' : ''}`}>
