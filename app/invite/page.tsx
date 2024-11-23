@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
 import { motion, useAnimation } from 'framer-motion'
 import { Particles } from 'react-tsparticles'
-import { Engine } from 'tsparticles-engine'
+import { Engine, Container } from 'tsparticles-engine'  // Added Container import
 import { loadFull } from 'tsparticles'
-import { useSpring, animated } from '@react-spring/web'  // Note the change here
+import { useSpring, animated } from '@react-spring/web'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import Lottie from 'lottie-react'
 import inviteAnimation from './invite-animation.json'
@@ -34,7 +34,7 @@ export default function Invite() {
     await loadFull(engine)
   }
 
-  const particlesLoaded = async (container: Engine | undefined): Promise<void> => {
+  const particlesLoaded = async (container?: Container): Promise<void> => {
     console.log(container)
   }
 
