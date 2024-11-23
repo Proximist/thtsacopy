@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
+import { motion, AnimatePresence } from 'framer-motion'
+import confetti from 'canvas-confetti'
 import './invite.css'
-import '../globals.css'
 
 declare global {
   interface Window {
@@ -31,7 +32,6 @@ export default function Invite() {
       const isDark = tg.colorScheme === 'dark'
       setIsDarkMode(isDark)
 
-      // Add theme classes to body
       document.body.classList.toggle('dark-mode', isDark)
 
       const initDataUnsafe = tg.initDataUnsafe || {}
@@ -70,13 +70,20 @@ export default function Invite() {
       navigator.clipboard.writeText(inviteLink).then(() => {
         setButtonState('copied')
         setNotification('Invite link copied to clipboard!')
+        setIsCopied(true)
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        })
         setTimeout(() => {
           setButtonState('fadeOut')
           setTimeout(() => {
             setButtonState('initial')
             setNotification('')
+            setIsCopied(false)
           }, 300)
-        }, 5000)
+        }, 2000)
       }).catch(err => {
         console.error('Failed to copy: ', err)
         setNotification('Failed to copy invite link. Please try again.')
@@ -84,7 +91,6 @@ export default function Invite() {
     }
   }
 
-  // Add dark mode classes to elements
   const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
   const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
   const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
@@ -103,46 +109,99 @@ export default function Invite() {
   return (
     <div className={containerClass}>
       <div className="backgroundShapes"></div>
-      <div className={contentClass}>
+      <motion.div 
+        className={contentClass}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {error ? (
-          <div className="error">{error}</div>
+          <motion.div 
+            className="error"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {error}
+          </motion.div>
         ) : !user ? (
           <div className="loader"></div>
         ) : (
           <>
-            <div className={headerClass}>
+            <motion.div 
+              className={headerClass}
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               <div className="iconContainer">
-                <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <motion.svg 
+                  className="icon" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  initial={{ rotate: -180, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
                   <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="4" fill="currentColor"/>
-                </svg>
-                <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                </motion.svg>
+                <motion.svg 
+                  className="icon" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  initial={{ rotate: 180, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                >
                   <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="4" fill="currentColor"/>
-                </svg>
+                </motion.svg>
               </div>
-              <p className={titleClass}>
+              <motion.p 
+                className={titleClass}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+              >
                 Invite your friends and earn 2,500 points for each one you bring!
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
 
-            <button 
+            <motion.button 
               onClick={handleInvite} 
               className={inviteButtonClass}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 1 }}
             >
               <span className="buttonText">Copy Invite Link</span>
               <span className="buttonIcon">
                 <i className="fas fa-copy"></i> Copied
               </span>
-            </button>
+            </motion.button>
 
             {user.invitedBy && (
-              <div className={invitedByClass}>
+              <motion.div 
+                className={invitedByClass}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
+              >
                 Invited by: {user.invitedBy}
-              </div>
+              </motion.div>
             )}
 
-            <div className={invitedSectionClass}>
+            <motion.div 
+              className={invitedSectionClass}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
+            >
               <div className={invitedHeaderClass}>
                 <svg className="invitedIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -151,25 +210,65 @@ export default function Invite() {
                 <h2 className={invitedTitleClass}>Invited Friends : {invitedUsers.length}</h2>
               </div>
               {invitedUsers.length > 0 ? (
-                <ul className="invitedList">
+                <motion.ul 
+                  className="invitedList"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: {
+                      transition: {
+                        staggerChildren: 0.1,
+                        delayChildren: 1.6,
+                      },
+                    },
+                  }}
+                >
                   {invitedUsers.map((user, index) => (
-                    <li key={index}>{user}</li>
+                    <motion.li 
+                      key={index}
+                      variants={{
+                        hidden: { y: 20, opacity: 0 },
+                        visible: { y: 0, opacity: 1 },
+                      }}
+                    >
+                      {user}
+                    </motion.li>
                   ))}
-                </ul>
+                </motion.ul>
               ) : (
-                <div className={emptyStateClass}>
+                <motion.div 
+                  className={emptyStateClass}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 1.6 }}
+                >
                   <p className="emptyStateText">The Invite List is empty</p>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
-            {notification && (
-              <div className={notificationClass}>{notification}</div>
-            )}
+            <AnimatePresence>
+              {notification && (
+                <motion.div 
+                  className={notificationClass}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 50 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {notification}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
-      </div>
-      <div className={footerContainerClass}>
+      </motion.div>
+      <motion.div 
+        className={footerContainerClass}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 1.8 }}
+      >
         <Link href="/">
           <a className={footerLinkClass}>
             <i className="fas fa-home"></i>
@@ -200,7 +299,7 @@ export default function Invite() {
             <span>Event</span>
           </a>
         </Link>
-      </div>
+      </motion.div>
     </div>
   )
 }
