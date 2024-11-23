@@ -175,12 +175,6 @@ export default function Invite() {
         )}
       </div>
       <div className={footerContainerClass}>
-        <Link href="/">
-          <a className={footerLinkClass}>
-            <i className="fas fa-home"></i>
-            <span>Home</span>
-          </a>
-        </Link>
         <Link href="/invite">
           <a className={activeFooterLinkClass}>
             <i className="fas fa-users"></i>
@@ -191,18 +185,6 @@ export default function Invite() {
           <a className={footerLinkClass}>
             <i className="fas fa-trophy"></i>
             <span>Leaderboard</span>
-          </a>
-        </Link>
-        <Link href="/task">
-          <a className={footerLinkClass}>
-            <i className="fas fa-clipboard"></i>
-            <span>Tasks</span>
-          </a>
-        </Link>
-         <Link href="/timer">
-          <a className={footerLinkClass}>
-            <i className="fas fa-calendar"></i>
-            <span>Event</span>
           </a>
         </Link>
       </div>
