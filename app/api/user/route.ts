@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
               firstName: userData.first_name || '',
               lastName: userData.last_name || '',
               invitedBy: `@${inviterInfo.username || inviterId}`,
-              isOnline: true,
               currentTime: new Date()
             }
           });
@@ -64,7 +63,6 @@ export async function POST(req: NextRequest) {
               username: userData.username || '',
               firstName: userData.first_name || '',
               lastName: userData.last_name || '',
-              isOnline: true,
               currentTime: new Date()
             }
           });
@@ -76,7 +74,6 @@ export async function POST(req: NextRequest) {
             username: userData.username || '',
             firstName: userData.first_name || '',
             lastName: userData.last_name || '',
-            isOnline: true,
             currentTime: new Date()
           }
         });
