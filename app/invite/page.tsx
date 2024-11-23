@@ -6,7 +6,7 @@ import { WebApp } from '@twa-dev/types'
 import { motion, useAnimation } from 'framer-motion'
 import { Particles } from 'react-tsparticles'
 import { loadFull } from 'tsparticles'
-import { useSpring, animated } from 'react-spring'
+import { useSpring, animated } from '@react-spring/web'  // Note the change here
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import Lottie from 'lottie-react'
 import inviteAnimation from './invite-animation.json'
