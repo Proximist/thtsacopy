@@ -275,7 +275,6 @@
 .notification {
   position: fixed;
   bottom: 70px;
-  left: 50%;
   transform: translateX(-50%);
   z-index: 30;
   padding: 0.75rem 1.5rem;
