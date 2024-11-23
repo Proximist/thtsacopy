@@ -127,7 +127,7 @@ export default function Invite() {
                 </svg>
               </div>
               <p className={titleClass}>
-                Invite your friends and earn 2,500 points for each one you bring!
+                Invite your friends and earn Real Money!
               </p>
             </div>
 
@@ -135,9 +135,8 @@ export default function Invite() {
               onClick={handleInvite} 
               className={inviteButtonClass}
             >
-              <span className="buttonText">Copy Invite Link</span>
               <span className="buttonIcon">
-                <i className="fas fa-copy"></i> Copied
+                <i className="fas fa-copy"></i> Copy Invite Link
               </span>
             </button>
 
