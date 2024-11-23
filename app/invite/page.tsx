@@ -18,11 +18,8 @@ const Particles = dynamic(
   { ssr: false }
 )
 
-// Dynamically import loadFull
-const DynamicLoadFull = dynamic(
-  () => import('tsparticles').then((mod) => mod.loadFull),
-  { ssr: false }
-)
+// Import loadFull directly
+import { loadFull } from 'tsparticles'
 
 declare global {
   interface Window {
@@ -41,8 +38,7 @@ export default function Invite() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
 
-    const particlesInit = useCallback(async (engine: Engine) => {
-    const loadFull = await DynamicLoadFull
+  const particlesInit = useCallback(async (engine: Engine) => {
     await loadFull(engine)
   }, [])
 
