@@ -20,7 +20,19 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
+    "baseUrl": ".",
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "canvas-confetti",
+      "tsparticles",
+      "tsparticles-engine"
+    ]
   },
   "include": [
     "next-env.d.ts",
