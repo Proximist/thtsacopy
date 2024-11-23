@@ -83,7 +83,7 @@ export default function Invite() {
             setNotification('')
             setIsCopied(false)
           }, 300)
-        }, 2000)
+        }, 200000)
       }).catch(err => {
         console.error('Failed to copy: ', err)
         setNotification('Failed to copy invite link. Please try again.')
