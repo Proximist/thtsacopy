@@ -50,7 +50,7 @@ export default function Invite() {
               setError(data.error)
             } else {
               setUser(data.user)
-              setInviteLink(`http://t.me/pixel_dogs_bot/Pixel_dogs_web/start?startapp=${data.user.telegramId}`)
+              setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
             }
           })
