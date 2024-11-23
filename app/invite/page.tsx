@@ -8,7 +8,7 @@ import { useSpring, animated } from '@react-spring/web'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import Lottie from 'lottie-react'
 import dynamic from 'next/dynamic'
-import { Engine, Container } from 'tsparticles-engine'
+import { Engine, Container, ISourceOptions, MoveDirection, OutMode } from 'tsparticles-engine'
 import inviteAnimation from './invite-animation.json'
 import './invite.css'
 
@@ -121,75 +121,75 @@ export default function Invite() {
     }
   }, [notification, notificationAnimation])
 
-  const particlesOptions = {
-  background: {
-    color: {
-      value: isDarkMode ? "#0F172A" : "#E2E8F0",
+  const particlesOptions: ISourceOptions = {
+    background: {
+      color: {
+        value: isDarkMode ? "#0F172A" : "#E2E8F0",
+      },
     },
-  },
-  fpsLimit: 60,
-  interactivity: {
-    events: {
-      onClick: {
+    fpsLimit: 60,
+    interactivity: {
+      events: {
+        onClick: {
+          enable: true,
+          mode: "push",
+        },
+        onHover: {
+          enable: true,
+          mode: "repulse",
+        },
+        resize: true,
+      },
+      modes: {
+        push: {
+          quantity: 4,
+        },
+        repulse: {
+          distance: 200,
+          duration: 0.4,
+        },
+      },
+    },
+    particles: {
+      color: {
+        value: isDarkMode ? "#4B5563" : "#94A3B8",
+      },
+      links: {
+        color: isDarkMode ? "#4B5563" : "#94A3B8",
+        distance: 150,
         enable: true,
-        mode: "push",
+        opacity: 0.5,
+        width: 1,
       },
-      onHover: {
+      move: {
+        direction: "none" as MoveDirection,
         enable: true,
-        mode: "repulse",
+        outModes: {
+          default: "bounce" as OutMode,
+        },
+        random: false,
+        speed: 2,
+        straight: false,
       },
-      resize: true,
-    },
-    modes: {
-      push: {
-        quantity: 4,
+      number: {
+        density: {
+          enable: true,
+          area: 800,
+        },
+        value: 80,
       },
-      repulse: {
-        distance: 200,
-        duration: 0.4,
+      opacity: {
+        value: 0.5,
+      },
+      shape: {
+        type: "circle",
+      },
+      size: {
+        value: { min: 1, max: 5 },
       },
     },
-  },
-  particles: {
-    color: {
-      value: isDarkMode ? "#4B5563" : "#94A3B8",
-    },
-    links: {
-      color: isDarkMode ? "#4B5563" : "#94A3B8",
-      distance: 150,
-      enable: true,
-      opacity: 0.5,
-      width: 1,
-    },
-    move: {
-      direction: "none",  // This is correct, but TypeScript may need further clarification.
-      enable: true,
-      outModes: {
-        default: "bounce",
-      },
-      random: false,
-      speed: 2,
-      straight: false,
-    },
-    number: {
-      density: {
-        enable: true,
-        area: 800,
-      },
-      value: 80,
-    },
-    opacity: {
-      value: 0.5,
-    },
-    shape: {
-      type: "circle",
-    },
-    size: {
-      value: { min: 1, max: 5 },
-    },
-  },
-  detectRetina: true,
-}
+    detectRetina: true,
+  }
 
   return (
     <div className={`container ${isDarkMode ? 'dark-mode' : ''}`}>
