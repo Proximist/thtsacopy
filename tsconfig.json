@@ -25,14 +25,8 @@
       "./types"
     ],
     "baseUrl": ".",
-    "types": [
-      "node",
-      "react",
-      "react-dom",
-      "canvas-confetti",
-      "tsparticles",
-      "tsparticles-engine"
-    ]
+    "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "next-env.d.ts",
