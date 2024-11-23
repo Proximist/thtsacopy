@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
 import { motion, useAnimation } from 'framer-motion'
 import { Particles } from 'react-tsparticles'
+import { Engine } from 'tsparticles-engine'
 import { loadFull } from 'tsparticles'
 import { useSpring, animated } from '@react-spring/web'  // Note the change here
 import { CopyToClipboard } from 'react-copy-to-clipboard'
@@ -29,16 +30,52 @@ export default function Invite() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   
-  const particlesInit = async (main: any) => {
-    await loadFull(main)
+  const particlesInit = async (engine: Engine): Promise<void> => {
+    await loadFull(engine)
   }
 
-  const particlesLoaded = (container: any) => {
+  const particlesLoaded = async (container: Engine | undefined): Promise<void> => {
     console.log(container)
   }
 
   useEffect(() => {
-    // ... (keep existing useEffect logic)
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp
+      tg.ready()
+      const isDark = tg.colorScheme === 'dark'
+      setIsDarkMode(isDark)
+
+      document.body.classList.toggle('dark-mode', isDark)
+
+      const initDataUnsafe = tg.initDataUnsafe || {}
+
+      if (initDataUnsafe.user) {
+        fetch('/api/user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...initDataUnsafe.user, start_param: initDataUnsafe.start_param || null })
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              setError(data.error)
+            } else {
+              setUser(data.user)
+              setInviteLink(`http://t.me/pixel_dogs_bot/Pixel_dogs_web/start?startapp=${data.user.telegramId}`)
+              setInvitedUsers(data.user.invitedUsers || [])
+            }
+          })
+          .catch(() => {
+            setError('Failed to fetch user data')
+          })
+      } else {
+        setError('No user data available')
+      }
+    } else {
+      setError('This app should be opened in Telegram')
+    }
   }, [])
 
   const handleInvite = () => {
