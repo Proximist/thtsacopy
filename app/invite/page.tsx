@@ -103,11 +103,11 @@ export default function Invite() {
   return (
     <div className={containerClass}>
       <div className="backgroundShapes"></div>
-<div className="glowingOrbs">
-  <div className="orb"></div>
-  <div className="orb"></div>
-  <div className="orb"></div>
-</div>
+      <div className="floatingElements">
+        <div className="floatingElement"></div>
+        <div className="floatingElement"></div>
+        <div className="floatingElement"></div>
+      </div>
       <div className={contentClass}>
         {error ? (
           <div className="error">{error}</div>
@@ -127,7 +127,7 @@ export default function Invite() {
                 </svg>
               </div>
               <p className={titleClass}>
-                Invite your Friends and earn Real Money!
+                Invite your friends and earn Real Money!
               </p>
             </div>
 
@@ -135,7 +135,7 @@ export default function Invite() {
               onClick={handleInvite} 
               className={inviteButtonClass}
             >
-            
+          
               <span className="buttonIcon">
                 <i className="fas fa-copy"></i> Copy Invite Link
               </span>
