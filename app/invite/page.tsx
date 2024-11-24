@@ -21,60 +21,32 @@ export default function Invite() {
   const [inviteLink, setInviteLink] = useState('')
   const [invitedUsers, setInvitedUsers] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isCopied, setIsCopied] = useState(false)
   const [buttonState, setButtonState] = useState('initial')
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
-  // Handle mouse movement for parallax effects
+  // Track mouse position for parallax effects
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    const cards = document.querySelectorAll('.card');
-    const floatingElements = document.querySelectorAll('.floating-element');
-    
-    // Update card highlighting
+    const { clientX, clientY } = e
+    const x = (clientX / window.innerWidth - 0.5) * 2
+    const y = (clientY / window.innerHeight - 0.5) * 2
+    setMousePosition({ x, y })
+
+    // Update card hover effects
+    const cards = document.querySelectorAll('.card')
     cards.forEach(card => {
-      const rect = (card as HTMLElement).getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const rect = (card as HTMLElement).getBoundingClientRect()
+      const cardX = clientX - rect.left
+      const cardY = clientY - rect.top
       
-      (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
-      (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
-    });
-
-    // Update floating elements position
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const moveX = (e.clientX - centerX) / 50;
-    const moveY = (e.clientY - centerY) / 50;
-
-    floatingElements.forEach((element, index) => {
-      const depth = index + 1;
-      (element as HTMLElement).style.transform = 
-        `translate3d(${moveX * depth}px, ${moveY * depth}px, 0)`;
-    });
-
-    setMousePosition({ x: e.clientX, y: e.clientY });
-  }, []);
+      ;(card as HTMLElement).style.setProperty('--mouse-x', `${cardX}px`)
+      ;(card as HTMLElement).style.setProperty('--mouse-y', `${cardY}px`)
+    })
+  }, [])
 
   useEffect(() => {
-    // Initialize particles
-    const particleContainer = document.querySelector('.particle-container');
-    if (particleContainer) {
-      for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = `${Math.random() * 100}%`;
-        particle.style.animationDelay = `${Math.random() * 20}s`;
-        particleContainer.appendChild(particle);
-      }
-    }
-
-    // Add mouse move listener
-    document.addEventListener('mousemove', handleMouseMove);
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [handleMouseMove]);
+    document.addEventListener('mousemove', handleMouseMove)
+    return () => document.removeEventListener('mousemove', handleMouseMove)
+  }, [handleMouseMove])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -82,7 +54,6 @@ export default function Invite() {
       tg.ready()
       const isDark = tg.colorScheme === 'dark'
       setIsDarkMode(isDark)
-
       document.body.classList.toggle('dark-mode', isDark)
 
       const initDataUnsafe = tg.initDataUnsafe || {}
@@ -121,14 +92,8 @@ export default function Invite() {
       navigator.clipboard.writeText(inviteLink).then(() => {
         setButtonState('copied')
         setNotification('Invite link copied to clipboard!')
-        
-        // Trigger button animation
-        const button = document.querySelector('.morphing-button');
-        button?.classList.add('active');
-        
         setTimeout(() => {
           setButtonState('fadeOut')
-          button?.classList.remove('active');
           setTimeout(() => {
             setButtonState('initial')
             setNotification('')
@@ -141,19 +106,43 @@ export default function Invite() {
     }
   }
 
-  // Dynamic classes with animation states
   const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
-  const contentClass = `content custom-scrollbar ${isDarkMode ? 'dark-mode' : ''}`
+  const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
 
   return (
     <div className={containerClass}>
-      {/* Premium Background Effects */}
+      {/* Particle System */}
+      <div className="particle-container">
+        {[...Array(50)].map((_, i) => (
+          <div 
+            key={i} 
+            className="particle" 
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 20}s`,
+              animationDuration: `${15 + Math.random() * 10}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Nebula Background */}
       <div className="nebula-background" />
-      <div className="particle-container" />
+
+      {/* Floating Elements with Parallax */}
       <div className="floating-elements">
-        <div className="floating-element" />
-        <div className="floating-element" />
-        <div className="floating-element" />
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="floating-element"
+            style={{
+              transform: `translate3d(${mousePosition.x * (i + 1) * 20}px, ${
+                mousePosition.y * (i + 1) * 20
+              }px, 0)`
+            }}
+          />
+        ))}
       </div>
 
       <div className={contentClass}>
@@ -176,33 +165,33 @@ export default function Invite() {
                   <circle cx="12" cy="12" r="4" fill="currentColor"/>
                 </svg>
               </div>
-              <p className="animated-text title">
+              <p className="title animated-text">
                 Invite your friends and earn Real Money!
               </p>
             </div>
 
             <button 
               onClick={handleInvite} 
-              className="morphing-button"
+              className={`morphing-button ${buttonState}`}
             >
-              <span className="button-content">
+              <span className="buttonContent">
                 <i className="fas fa-copy"></i> Copy Invite Link
               </span>
             </button>
 
             {user.invitedBy && (
-              <div className="glass-card invitedBy">
+              <div className="invitedBy glass-card">
                 <span className="animated-text">Invited by: {user.invitedBy}</span>
               </div>
             )}
 
-            <div className="card invitedSection">
+            <div className="invitedSection card">
               <div className="invitedHeader">
                 <svg className="invitedIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <h2 className="animated-text">
+                <h2 className="invitedTitle animated-text">
                   Invited Friends : {invitedUsers.length}
                 </h2>
               </div>
@@ -210,13 +199,13 @@ export default function Invite() {
                 <ul className="invitedList">
                   {invitedUsers.map((user, index) => (
                     <li key={index} className="glass-card">
-                      {user}
+                      <span>{user}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <div className="emptyState glass-card">
-                  <p className="animated-text">The Invite List is empty</p>
+                  <p className="emptyStateText animated-text">The Invite List is empty</p>
                 </div>
               )}
             </div>
