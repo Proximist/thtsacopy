@@ -1,49 +1,242 @@
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300..900&display=swap');
+
+/* Advanced Particle System */
+.particle-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
 }
 
-@keyframes blob {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(20px, -20px) scale(1.1); }
-  50% { transform: translate(-20px, 20px) scale(0.9); }
-  75% { transform: translate(20px, 20px) scale(1.1); }
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 50%;
+  animation: particleFloat 20s infinite linear;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes particleFloat {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(100px, -1000px, 100px) rotate(360deg);
+    opacity: 0;
+  }
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translate(-50%, 20px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+/* Nebula Background Effect */
+.nebula-background {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 35%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 75% 44%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 5% 85%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+  filter: blur(30px);
+  animation: nebulaMove 30s infinite alternate;
+  transform-origin: center;
+  z-index: 0;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+@keyframes nebulaMove {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
-.animate-blob {
-  animation: blob 7s ease-in-out infinite;
+/* 3D Card Effect */
+.card {
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
+.card:hover {
+  transform: translateY(-5px) rotateX(2deg) rotateY(2deg);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(139, 92, 246, 0.3);
 }
 
-.animate-slideUp {
-  animation: slideUp 0.3s ease-out forwards;
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    800px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.1),
+    transparent 40%
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.5s;
 }
 
-.animation-delay-1000 {
-  animation-delay: 1s;
+.card:hover::before {
+  opacity: 1;
 }
 
-.animation-delay-2000 {
-  animation-delay: 2s;
+/* Morphing Button */
+.morphing-button {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  border: none;
+  border-radius: 100px;
+  padding: 1rem 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transform-style: preserve-3d;
 }
 
-.animation-delay-4000 {
-  animation-delay: 4s;
+.morphing-button::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: linear-gradient(135deg, #C084FC 0%, #818CF8 100%);
+  filter: blur(20px);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.morphing-button:hover {
+  transform: scale(1.02) translateY(-2px);
+}
+
+.morphing-button:hover::before {
+  opacity: 0.5;
+}
+
+.morphing-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  border-radius: inherit;
+  transition: filter 0.5s;
+}
+
+.morphing-button:active {
+  transform: scale(0.98);
+}
+
+/* Floating Elements with Parallax */
+.floating-element {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.floating-element:nth-child(1) {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+  animation: floatAnimation1 20s infinite alternate;
+}
+
+.floating-element:nth-child(2) {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
+  animation: floatAnimation2 25s infinite alternate-reverse;
+}
+
+@keyframes floatAnimation1 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(100px, -50px, 50px) rotate(180deg);
+  }
+}
+
+@keyframes floatAnimation2 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(-100px, 50px, -50px) rotate(-180deg);
+  }
+}
+
+/* Text Gradient Animation */
+.animated-text {
+  background: linear-gradient(
+    to right,
+    #C084FC,
+    #8B5CF6,
+    #6366F1,
+    #C084FC
+  );
+  background-size: 300% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textGradient 8s linear infinite;
+}
+
+@keyframes textGradient {
+  to {
+    background-position: 300% center;
+  }
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 
+    0 8px 40px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+/* Smooth Scroll Effect */
+.content {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+}
+
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 3px;
 }
