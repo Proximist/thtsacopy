@@ -1,17 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { WebApp } from '@twa-dev/types';
+import React, { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { WebApp } from '@twa-dev/types'
 import './invite.css'
-import { 
-  Users,
-  Home,
-  Trophy,
-  Copy,
-  Sparkles,
-  Gift
-} from 'lucide-react';
+import '../globals.css'
 
 declare global {
   interface Window {
@@ -21,198 +14,242 @@ declare global {
   }
 }
 
-// Particle component for background effects
-const Particles = () => {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {[...Array(50)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute w-2 h-2 bg-white rounded-full opacity-20 animate-float"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${5 + Math.random() * 10}s`
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 export default function Invite() {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState('');
-  const [inviteLink, setInviteLink] = useState('');
-  const [invitedUsers, setInvitedUsers] = useState([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [buttonState, setButtonState] = useState('initial');
+  const [user, setUser] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [notification, setNotification] = useState('')
+  const [inviteLink, setInviteLink] = useState('')
+  const [invitedUsers, setInvitedUsers] = useState<string[]>([])
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
+  const [buttonState, setButtonState] = useState('initial')
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+
+  // Handle mouse movement for parallax effects
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    const cards = document.querySelectorAll('.card');
+    const floatingElements = document.querySelectorAll('.floating-element');
+    
+    // Update card highlighting
+    cards.forEach(card => {
+      const rect = (card as HTMLElement).getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
+      (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
+    });
+
+    // Update floating elements position
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const moveX = (e.clientX - centerX) / 50;
+    const moveY = (e.clientY - centerY) / 50;
+
+    floatingElements.forEach((element, index) => {
+      const depth = index + 1;
+      (element as HTMLElement).style.transform = 
+        `translate3d(${moveX * depth}px, ${moveY * depth}px, 0)`;
+    });
+
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  useEffect(() => {
+    // Initialize particles
+    const particleContainer = document.querySelector('.particle-container');
+    if (particleContainer) {
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.animationDelay = `${Math.random() * 20}s`;
+        particleContainer.appendChild(particle);
+      }
+    }
+
+    // Add mouse move listener
+    document.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [handleMouseMove]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      setIsDarkMode(tg.colorScheme === 'dark');
+      const tg = window.Telegram.WebApp
+      tg.ready()
+      const isDark = tg.colorScheme === 'dark'
+      setIsDarkMode(isDark)
 
-      const initDataUnsafe = tg.initDataUnsafe || {};
+      document.body.classList.toggle('dark-mode', isDark)
+
+      const initDataUnsafe = tg.initDataUnsafe || {}
 
       if (initDataUnsafe.user) {
         fetch('/api/user', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...initDataUnsafe.user,
-            start_param: initDataUnsafe.start_param || null
-          })
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...initDataUnsafe.user, start_param: initDataUnsafe.start_param || null })
         })
-          .then(res => res.json())
-          .then(data => {
+          .then((res) => res.json())
+          .then((data) => {
             if (data.error) {
-              setError(data.error);
+              setError(data.error)
             } else {
-              setUser(data.user);
-              setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`);
-              setInvitedUsers(data.user.invitedUsers || []);
+              setUser(data.user)
+              setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
+              setInvitedUsers(data.user.invitedUsers || [])
             }
           })
-          .catch(() => setError('Failed to fetch user data'));
+          .catch(() => {
+            setError('Failed to fetch user data')
+          })
       } else {
-        setError('No user data available');
+        setError('No user data available')
       }
     } else {
-      setError('This app should be opened in Telegram');
+      setError('This app should be opened in Telegram')
     }
-  }, []);
+  }, [])
 
   const handleInvite = () => {
     if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink)
-        .then(() => {
-          setButtonState('copied');
-          setNotification('Invite link copied to clipboard!');
+      navigator.clipboard.writeText(inviteLink).then(() => {
+        setButtonState('copied')
+        setNotification('Invite link copied to clipboard!')
+        
+        // Trigger button animation
+        const button = document.querySelector('.morphing-button');
+        button?.classList.add('active');
+        
+        setTimeout(() => {
+          setButtonState('fadeOut')
+          button?.classList.remove('active');
           setTimeout(() => {
-            setButtonState('fadeOut');
-            setTimeout(() => {
-              setButtonState('initial');
-              setNotification('');
-            }, 300);
-          }, 5000);
-        })
-        .catch(() => setNotification('Failed to copy invite link. Please try again.'));
+            setButtonState('initial')
+            setNotification('')
+          }, 300)
+        }, 5000)
+      }).catch(err => {
+        console.error('Failed to copy: ', err)
+        setNotification('Failed to copy invite link. Please try again.')
+      })
     }
-  };
+  }
+
+  // Dynamic classes with animation states
+  const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
+  const contentClass = `content custom-scrollbar ${isDarkMode ? 'dark-mode' : ''}`
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-indigo-950 to-purple-900 text-white overflow-hidden">
-      <Particles />
-      
-      {/* Animated background elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),transparent_80%)]" />
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full filter blur-3xl animate-blob" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-500/10 rounded-full filter blur-3xl animate-blob animation-delay-4000" />
+    <div className={containerClass}>
+      {/* Premium Background Effects */}
+      <div className="nebula-background" />
+      <div className="particle-container" />
+      <div className="floating-elements">
+        <div className="floating-element" />
+        <div className="floating-element" />
+        <div className="floating-element" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className={contentClass}>
         {error ? (
-          <div className="text-red-400 bg-red-900/20 p-4 rounded-lg backdrop-blur-sm animate-fadeIn">
-            {error}
+          <div className="error glass-card">
+            <span className="animated-text">{error}</span>
           </div>
         ) : !user ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          </div>
+          <div className="loader" />
         ) : (
-          <div className="space-y-8 animate-fadeIn">
-            {/* Header Section */}
-            <div className="text-center space-y-6">
-              <div className="flex justify-center gap-4">
-                <Gift className="w-16 h-16 text-purple-400 animate-float" />
-                <Sparkles className="w-16 h-16 text-blue-400 animate-float animation-delay-1000" />
+          <>
+            <div className="header card">
+              <div className="iconContainer">
+                <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2"/>
+                  <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                </svg>
+                <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2"/>
+                  <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                </svg>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <p className="animated-text title">
                 Invite your friends and earn Real Money!
-              </h1>
+              </p>
             </div>
 
-            {/* Invite Button */}
-            <button
-              onClick={handleInvite}
-              className="w-full py-4 px-6 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl font-bold text-lg relative overflow-hidden group transition-all duration-300 ease-out hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+            <button 
+              onClick={handleInvite} 
+              className="morphing-button"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              <div className="flex items-center justify-center gap-2">
-                <Copy className="w-5 h-5" />
-                <span>Copy Invite Link</span>
-              </div>
+              <span className="button-content">
+                <i className="fas fa-copy"></i> Copy Invite Link
+              </span>
             </button>
 
-            {/* Invited Users Section */}
-            <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-6 space-y-6 border border-white/10">
-              <div className="flex items-center gap-3">
-                <Users className="w-8 h-8 text-purple-400" />
-                <h2 className="text-xl font-semibold">
-                  Invited Friends: {invitedUsers.length}
+            {user.invitedBy && (
+              <div className="glass-card invitedBy">
+                <span className="animated-text">Invited by: {user.invitedBy}</span>
+              </div>
+            )}
+
+            <div className="card invitedSection">
+              <div className="invitedHeader">
+                <svg className="invitedIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h2 className="animated-text">
+                  Invited Friends : {invitedUsers.length}
                 </h2>
               </div>
-
               {invitedUsers.length > 0 ? (
-                <ul className="space-y-3">
+                <ul className="invitedList">
                   {invitedUsers.map((user, index) => (
-                    <li
-                      key={index}
-                      className="bg-white/5 p-4 rounded-xl flex items-center gap-3 transition-all duration-300 hover:translate-x-2 hover:bg-white/10"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                        👤
-                      </div>
-                      <span>{user}</span>
+                    <li key={index} className="glass-card">
+                      {user}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="text-center py-8 text-gray-400">
-                  <p>The Invite List is empty</p>
+                <div className="emptyState glass-card">
+                  <p className="animated-text">The Invite List is empty</p>
                 </div>
               )}
             </div>
-          </div>
-        )}
 
-        {/* Footer Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-black/20 backdrop-blur-lg border-t border-white/10">
-          <div className="max-w-md mx-auto flex justify-around py-4">
-            <Link href="/">
-              <a className="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-400 transition-colors">
-                <Home className="w-6 h-6" />
-                <span className="text-xs">Home</span>
-              </a>
-            </Link>
-            <Link href="/invite">
-              <a className="flex flex-col items-center gap-1 text-purple-400">
-                <Users className="w-6 h-6" />
-                <span className="text-xs">Friends</span>
-              </a>
-            </Link>
-            <Link href="/leaderboard">
-              <a className="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-400 transition-colors">
-                <Trophy className="w-6 h-6" />
-                <span className="text-xs">Leaderboard</span>
-              </a>
-            </Link>
-          </div>
-        </div>
-
-        {/* Notification */}
-        {notification && (
-          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-purple-500/90 backdrop-blur-sm px-6 py-3 rounded-full text-white shadow-lg animate-slideUp">
-            {notification}
-          </div>
+            {notification && (
+              <div className="notification glass-card">
+                <span className="animated-text">{notification}</span>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      <div className="footerContainer glass-card">
+        <Link href="/">
+          <a className="footerLink">
+            <i className="fas fa-home"></i>
+            <span>Home</span>
+          </a>
+        </Link>
+        <Link href="/invite">
+          <a className="footerLink activeFooterLink">
+            <i className="fas fa-users"></i>
+            <span>Friends</span>
+          </a>
+        </Link>
+        <Link href="/leaderboard">
+          <a className="footerLink">
+            <i className="fas fa-trophy"></i>
+            <span>Leaderboard</span>
+          </a>
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
