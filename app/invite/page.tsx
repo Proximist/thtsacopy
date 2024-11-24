@@ -135,7 +135,7 @@ export default function Invite() {
               onClick={handleInvite} 
               className={inviteButtonClass}
             >
-              <span className="buttonText">Copy Invite Link</span>
+            
               <span className="buttonIcon">
                 <i className="fas fa-copy"></i> Copy Invite Link
               </span>
