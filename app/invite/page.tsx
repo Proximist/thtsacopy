@@ -13,6 +13,14 @@ import {
   Gift
 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: WebApp
+    }
+  }
+}
+
 // Particle component for background effects
 const Particles = () => {
   return (
