@@ -127,7 +127,7 @@ export default function Invite() {
                 </svg>
               </div>
               <p className={titleClass}>
-                Invite your friends and earn Real Money!
+                Invite your Friends and earn Real Money!
               </p>
             </div>
 
