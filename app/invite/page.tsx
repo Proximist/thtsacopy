@@ -277,11 +277,17 @@ export default function Invite() {
 
             <div className={invitedSectionClass}>
               <div className={invitedHeaderClass}>
-                <svg className="invitedIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <h2 className={invitedTitleClass}>Invited Friends : {invitedUsers.length}</h2>
+                <Users className="w-6 h-6 text-blue-400" />
+                <h2 className={invitedTitleClass}>Invited Friends: {invitedUsers.length}</h2>
+              </div>
+              <div className="mt-2 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                  style={{ 
+                    width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
+                    opacity: invitedUsers.length > 0 ? 1 : 0.3
+                  }}
+                />
               </div>
             </div>
 
@@ -357,65 +363,70 @@ export default function Invite() {
             )}
 
             {/* UPI Payout Section */}
-            {(
-              invitedUsers.length === 1 || 
-              invitedUsers.length === 3 || 
-              invitedUsers.length === 10
-            ) && (  
-              <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
-                  {!isUpiEditing ? (
-                    <button 
-                      onClick={() => setIsUpiEditing(true)} 
-                      className="text-blue-400 hover:text-blue-300"
+            {(invitedUsers.length === 1 || invitedUsers.length === 3 || invitedUsers.length === 10) && (
+              <div className="mt-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden">
+                <div className="p-4 flex flex-row items-center justify-between">
+                  <h3 className="text-2xl font-bold text-white">UPI Payout</h3>
+                  {!isUpiEditing && (
+                    <button
+                      onClick={() => setIsUpiEditing(true)}
+                      className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 rounded-full transition-colors"
                     >
                       <Edit className="w-5 h-5" />
                     </button>
-                  ) : null}
+                  )}
                 </div>
-                
-                {isUpiEditing ? (
-  <div className="flex space-x-2">
-    <input 
-      type="text" 
-      placeholder="Enter UPI ID" 
-      value={currentUpiId}
-      onChange={(e) => setCurrentUpiId(e.target.value)}
-      className="flex-grow p-2 rounded bg-gray-700 text-white"
-    />
-    {!hasRequestedPayout ? (
-      <button 
-        onClick={() => {
-          handleSaveUpiId();
-          handleRequestPayout();
-        }}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Request Payout
-      </button>
-    ) : (
-      <Timer className="w-6 h-6 text-yellow-400" />
-    )}
-  </div>
-) : (
-  <div className="flex items-center justify-between">
-    <span className="text-white/70">
-      {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
-    </span>
-    {!hasRequestedPayout ? (
-      <button 
-        onClick={handleRequestPayout}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-        disabled={hasRequestedPayout}
-      >
-        Request Payout
-      </button>
-    ) : (
-      <Timer className="w-6 h-6 text-yellow-400" />
-    )}
-  </div>
-                )}
+                <div className="p-4">
+                  {isUpiEditing ? (
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Enter UPI ID"
+                        value={currentUpiId}
+                        onChange={(e) => setCurrentUpiId(e.target.value)}
+                        className="w-full p-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/50"
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            handleSaveUpiId();
+                            handleRequestPayout();
+                          }}
+                          className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors"
+                          disabled={hasRequestedPayout}
+                        >
+                          {hasRequestedPayout ? 'Processing' : 'Request Payout'}
+                        </button>
+                        <button
+                          onClick={() => setIsUpiEditing(false)}
+                          className="border border-white/10 text-white hover:bg-white/5 py-2 px-4 rounded-md transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/70">
+                        {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+                      </span>
+                      {!hasRequestedPayout ? (
+                        <button
+                          onClick={handleRequestPayout}
+                          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition-colors"
+                          disabled={hasRequestedPayout || upiIds.length === 0}
+                        >
+                          Request Payout
+                        </button>
+                      ) : (
+                        <div className="flex items-center space-x-2 text-yellow-400">
+                          <Timer className="w-5 h-5" />
+                          <span>Processing</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             
