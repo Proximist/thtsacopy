@@ -6,6 +6,18 @@ import { WebApp } from '@twa-dev/types'
 import './invite.css'
 import '../globals.css'
 
+// Define a type for the user object
+type User = {
+  telegramId: number;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  points?: number;
+  invitedUsers?: string[];
+  invitedBy?: string;
+  currentTime?: Date;
+}
+
 declare global {
   interface Window {
     Telegram?: {
@@ -15,7 +27,7 @@ declare global {
 }
 
 export default function Invite() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
   const [inviteLink, setInviteLink] = useState('')
@@ -86,7 +98,7 @@ export default function Invite() {
   }
 
   const handleClaimPoints = async () => {
-    if (invitedUsers.length >= 3 && !taskCompleted) {
+    if (invitedUsers.length >= 3 && !taskCompleted && user) {
       try {
         const response = await fetch('/api/claim-task', {
           method: 'POST',
@@ -106,10 +118,10 @@ export default function Invite() {
           setTaskCompleted(true)
           setNotification('5000 points claimed successfully!')
           // Update user points in state
-          setUser(prev => ({
+          setUser(prev => prev ? ({
             ...prev,
             points: (prev.points || 0) + 5000
-          }))
+          }) : null)
         } else {
           setNotification(data.error || 'Failed to claim points')
         }
