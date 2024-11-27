@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Trophy, Users, CheckCircle, Edit, Save, Clock, Lock, ChevronDown, ChevronUp } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Trophy, Users, CheckCircle, Edit, Save, Clock, Lock } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -14,7 +13,7 @@ type User = {
   username?: string;
   firstName?: string;
   lastName?: string;
-  points?: number;  
+  points?: number;
   invitedUsers?: string[];
   invitedBy?: string;
   currentTime?: Date;
@@ -103,13 +102,13 @@ export default function Invite() {
     }
   }, [])
 
-  // Separate useEffect for UPI-related states
-useEffect(() => {
-  if (user) {
-    setSavedUpiIds(user.upiIds || [])
-    setUpiRequestSubmitted(!!user.upiRequests?.length)
-  }
-}, [user])
+  useEffect(() => {
+
+    if (user) {
+      setSavedUpiIds(user.upiIds || [])
+      setUpiRequestSubmitted(user.upiRequests && user.upiRequests.length > 0)
+    }
+  }, [user])
 
   const handleInvite = () => {
     if (inviteLink) {
@@ -216,7 +215,8 @@ useEffect(() => {
     }
   }
 
-  const handleSubmitUpiRequest = async () => {
+
+   const handleSubmitUpiRequest = async () => {
     if (!user || !savedUpiIds.length || isUpiProcessing) return;
 
     setIsUpiProcessing(true)
@@ -321,106 +321,86 @@ useEffect(() => {
       return null
     }
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const latestUpiId = savedUpiIds.length > 0 ? savedUpiIds[savedUpiIds.length - 1] : ''
 
     return (
       <div className="px-4 mt-4">
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
-          <button 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex justify-between items-center text-white font-semibold"
-          >
-            <div className="flex items-center space-x-2">
-              <Trophy className="w-6 h-6 text-yellow-400" />
-              <span>UPI Withdrawal</span>
-            </div>
-            {isDropdownOpen ? (
-              <ChevronUp className="w-5 h-5" />
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-semibold text-white">
+              UPI Withdrawal
+            </h3>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {isEditingUpi ? (
+              <input 
+                type="text" 
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+                placeholder="Enter UPI ID"
+                className="flex-grow p-2 rounded-lg bg-gray-700 text-white"
+                disabled={isUpiProcessing}
+              />
             ) : (
-              <ChevronDown className="w-5 h-5" />
-            )}
-          </button>
-  
-          {isDropdownOpen && (
-            <motion.div 
-              className="overflow-hidden"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center space-x-2 mt-4">
-                {isEditingUpi ? (
-                  <input 
-                    type="text" 
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="Enter UPI ID"
-                    className="flex-grow p-2 rounded-lg bg-gray-700 text-white"
-                    disabled={isUpiProcessing}
-                  />
-                ) : (
-                  <div className="flex-grow text-white/70">
-                    {latestUpiId || 'No UPI ID saved'}
-                  </div>
-                )}
-  
-                {isEditingUpi ? (
-                  <button 
-                    onClick={handleSaveUpiId}
-                    disabled={isUpiProcessing}
-                    className={`p-2 rounded-full ${
-                      isUpiProcessing 
-                        ? 'bg-gray-500 cursor-not-allowed' 
-                        : 'bg-green-500'
-                    }`}
-                  >
-                    {isUpiProcessing ? <Lock className="w-5 h-5 text-white" /> : <Save className="w-5 h-5 text-white" />}
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => setIsEditingUpi(true)}
-                    className="p-2 bg-blue-500 rounded-full"
-                  >
-                    <Edit className="w-5 h-5 text-white" />
-                  </button>
-                )}
+              <div className="flex-grow text-white/70">
+                {latestUpiId || 'No UPI ID saved'}
               </div>
-  
-              {latestUpiId && (
-                <button 
-                  onClick={handleSubmitUpiRequest}
-                  disabled={upiRequestSubmitted || isUpiProcessing}
-                  className={`
-                    w-full flex items-center justify-center 
-                    px-4 py-2 mt-4
-                    ${upiRequestSubmitted || isUpiProcessing 
-                      ? 'bg-gray-500 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-green-500 to-emerald-600'}
-                    text-white 
-                    rounded-full 
-                    transform transition-all duration-300
-                    hover:scale-105 
-                    active:scale-95
-                  `}
-                >
-                  {isUpiProcessing ? (
-                    <>
-                      <Lock className="w-5 h-5 mr-2" />
-                      Processing...
-                    </>
-                  ) : upiRequestSubmitted ? (
-                    <>
-                      <Clock className="w-5 h-5 mr-2" />
-                      Withdrawal Requested
-                    </>
-                  ) : (
-                    'Submit Withdrawal Request'
-                  )}
-                </button>
+            )}
+
+            {isEditingUpi ? (
+              <button 
+                onClick={handleSaveUpiId}
+                disabled={isUpiProcessing}
+                className={`p-2 rounded-full ${
+                  isUpiProcessing 
+                    ? 'bg-gray-500 cursor-not-allowed' 
+                    : 'bg-green-500'
+                }`}
+              >
+                {isUpiProcessing ? <Lock className="w-5 h-5 text-white" /> : <Save className="w-5 h-5 text-white" />}
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsEditingUpi(true)}
+                className="p-2 bg-blue-500 rounded-full"
+              >
+                <Edit className="w-5 h-5 text-white" />
+              </button>
+            )}
+          </div>
+
+          {latestUpiId && (
+            <button 
+              onClick={handleSubmitUpiRequest}
+              disabled={upiRequestSubmitted || isUpiProcessing}
+              className={`
+                w-full flex items-center justify-center 
+                px-4 py-2 
+                ${upiRequestSubmitted || isUpiProcessing 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-green-500 to-emerald-600'}
+                text-white 
+                rounded-full 
+                transform transition-all duration-300
+                hover:scale-105 
+                active:scale-95
+              `}
+            >
+              {isUpiProcessing ? (
+                <>
+                  <Lock className="w-5 h-5 mr-2" />
+                  Processing...
+                </>
+              ) : upiRequestSubmitted ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2" />
+                  Withdrawal Requested
+                </>
+              ) : (
+                'Submit Withdrawal Request'
               )}
-            </motion.div>
+            </button>
           )}
         </div>
       </div>
