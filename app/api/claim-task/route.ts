@@ -48,9 +48,10 @@ export async function POST(req: NextRequest) {
       const completedTasks = user.completedTasks || [];
       if (completedTasks.includes('invite_friends')) {
         return NextResponse.json({ 
-          success: false, 
-          error: 'Task already completed' 
-        }, { status: 400 });
+          success: true, 
+          points: user.points,
+          taskStatus: 'done'
+        });
       }
 
       // Update user with points and mark task as completed
@@ -68,7 +69,8 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ 
         success: true, 
-        points: updatedUser.points 
+        points: updatedUser.points,
+        taskStatus: 'done' 
       });
     }
 
