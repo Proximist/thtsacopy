@@ -54,12 +54,9 @@ export default function Invite() {
       tg.ready()
       const isDark = tg.colorScheme === 'dark'
       setIsDarkMode(isDark)
-
-      // Add theme classes to body
-      document.body.classList.toggle('dark-mode', isDark)
-
+  
       const initDataUnsafe = tg.initDataUnsafe || {}
-
+  
       if (initDataUnsafe.user) {
         fetch('/api/user', {
           method: 'POST',
@@ -77,13 +74,13 @@ export default function Invite() {
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
               
-              // Set UPI-related states
-              if (data.user.upiIds) {
+              // Persist UPI IDs from database
+              if (data.user.upiIds && data.user.upiIds.length > 0) {
                 setUpiIds(data.user.upiIds)
               }
-              if (data.user.requests && data.user.requests.length > 0) {
-                setHasRequestedPayout(true)
-              }
+              
+              // Check if payout request exists
+              setHasRequestedPayout(data.user.requests && data.user.requests.length > 0)
             }
           })
           .catch(() => {
@@ -309,57 +306,55 @@ export default function Invite() {
             )}
 
             {/* UPI Payout Section */}
-            {invitedUsers.length === 3 && (
-              <div className="px-4 mt-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
-                    {!isUpiEditing ? (
-                      <button 
-                        onClick={() => setIsUpiEditing(true)} 
-                        className="text-blue-400 hover:text-blue-300"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                    ) : null}
-                  </div>
-                  
-                  {isUpiEditing ? (
-                    <div className="flex space-x-2">
-                      <input 
-                        type="text" 
-                        placeholder="Enter UPI ID" 
-                        value={currentUpiId}
-                        onChange={(e) => setCurrentUpiId(e.target.value)}
-                        className="flex-grow p-2 rounded bg-gray-700 text-white"
-                      />
-                      <button 
-                        onClick={handleSaveUpiId}
-                        className="bg-green-500 text-white px-4 py-2 rounded"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/70">
-                        {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
-                      </span>
-                      {!hasRequestedPayout ? (
-                        <button 
-                          onClick={handleRequestPayout}
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
-                        >
-                          Request Payout
-                        </button>
-                      ) : (
-                        <Timer className="w-6 h-6 text-yellow-400" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {invitedUsers.length >= 10 && (
+  <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
+      {!isUpiEditing ? (
+        <button 
+          onClick={() => setIsUpiEditing(true)} 
+          className="text-blue-400 hover:text-blue-300"
+        >
+          <Edit className="w-5 h-5" />
+        </button>
+      ) : null}
+    </div>
+    
+    {isUpiEditing ? (
+      <div className="flex space-x-2">
+        <input 
+          type="text" 
+          placeholder="Enter UPI ID" 
+          value={currentUpiId}
+          onChange={(e) => setCurrentUpiId(e.target.value)}
+          className="flex-grow p-2 rounded bg-gray-700 text-white"
+        />
+        <button 
+          onClick={handleSaveUpiId}
+          className="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Save
+        </button>
+      </div>
+    ) : (
+      <div className="flex items-center justify-between">
+        <span className="text-white/70">
+          {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+        </span>
+        {!hasRequestedPayout ? (
+          <button 
+            onClick={handleRequestPayout}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Request Payout
+          </button>
+        ) : (
+          <Timer className="w-6 h-6 text-yellow-400" />
+        )}
+      </div>
+    )}
+  </div>
+)}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
