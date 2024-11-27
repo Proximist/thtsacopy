@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Trophy, Users, CheckCircle } from 'lucide-react'
+import { Users, Edit, Timer } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -18,6 +18,8 @@ type User = {
   invitedBy?: string;
   currentTime?: Date;
   completedTasks?: string[];
+  upiIds?: string[];
+  requests?: { upiId: string, requestedAt: Date }[];
 }
 
 declare global {
@@ -36,10 +38,15 @@ export default function Invite() {
   const [invitedUsers, setInvitedUsers] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
-  const [buttonStage, setButtonStage] = useState<'check' | 'claim' | 'done'>('check')
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [buttonStage, setButtonStage] = useState<'check'>('check')
   const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
+
+  // UPI-related states
+  const [upiIds, setUpiIds] = useState<string[]>([])
+  const [currentUpiId, setCurrentUpiId] = useState('')
+  const [isUpiEditing, setIsUpiEditing] = useState(false)
+  const [hasRequestedPayout, setHasRequestedPayout] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -70,11 +77,12 @@ export default function Invite() {
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
               
-              // Determine initial button stage
-              if (data.user.completedTasks?.includes('invite_friends')) {
-                setButtonStage('done')
-              } else if (data.user.invitedUsers?.length === 3) {
-                setButtonStage('claim')
+              // Set UPI-related states
+              if (data.user.upiIds) {
+                setUpiIds(data.user.upiIds)
+              }
+              if (data.user.requests && data.user.requests.length > 0) {
+                setHasRequestedPayout(true)
               }
             }
           })
@@ -108,58 +116,67 @@ export default function Invite() {
     }
   }
 
-  const handleButtonAction = async () => {
-    switch(buttonStage) {
-      case 'check':
-        // Check invite status
-        if (invitedUsers.length < 3) {
-          const remainingInvites = 3 - invitedUsers.length
-          setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
-          setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
+  const handleButtonAction = () => {
+    if (invitedUsers.length < 3) {
+      const remainingInvites = 3 - invitedUsers.length
+      setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
+      setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
+    }
+  }
+
+  // New function to handle UPI ID saving
+  const handleSaveUpiId = async () => {
+    if (currentUpiId.trim() && user) {
+      try {
+        const response = await fetch('/api/save-upi', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            telegramId: user.telegramId, 
+            upiId: currentUpiId 
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          setUpiIds(prev => [...prev, currentUpiId]);
+          setIsUpiEditing(false);
+          setCurrentUpiId('');
+          setNotification('UPI ID saved successfully!');
         }
-        break;
-      
-      case 'claim':
-        if (invitedUsers.length >= 3 && user) {
-          try {
-            setIsProcessing(true)
-            const response = await fetch('/api/claim-task', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ 
-                telegramId: user.telegramId,
-                taskType: 'invite_friends',
-                points: 5000
-              })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-              // Update button stage based on server response
-              const newButtonStage = data.taskStatus || 'done'
-              setButtonStage(newButtonStage)
-              setNotification('5000 points claimed successfully!')
-              
-              // Update user points in state
-              setUser(prev => prev ? ({
-                ...prev,
-                points: (prev.points || 0) + 5000,
-                completedTasks: [...(prev.completedTasks || []), 'invite_friends']
-              }) : null)
-            } else {
-              setNotification(data.error || 'Failed to claim points')
-            }
-          } catch (err) {
-            console.error('Error claiming points:', err)
-            setNotification('An error occurred while claiming points')
-          } finally {
-            setIsProcessing(false)
-          }
+      } catch (error) {
+        console.error('Error saving UPI ID:', error);
+        setNotification('Failed to save UPI ID');
+      }
+    }
+  }
+
+  // New function to handle payout request
+  const handleRequestPayout = async () => {
+    if (upiIds.length > 0 && user) {
+      try {
+        const response = await fetch('/api/request-payout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            telegramId: user.telegramId, 
+            upiId: upiIds[upiIds.length - 1] 
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          setHasRequestedPayout(true);
+          setNotification('Payout request submitted!');
         }
-        break;
+      } catch (error) {
+        console.error('Error requesting payout:', error);
+        setNotification('Failed to submit payout request');
+      }
     }
   }
 
@@ -175,58 +192,26 @@ export default function Invite() {
 
   // Render button based on current stage
   const renderTaskButton = () => {
-    switch(buttonStage) {
-      case 'check':
-        return (
-          <button 
-            onClick={handleButtonAction}
-            className={`
-              flex items-center space-x-2 
-              px-4 py-2 
-              bg-gradient-to-r from-blue-500 to-indigo-600 
-              text-white 
-              rounded-full 
-              transform transition-all duration-300
-              hover:scale-105 
-              active:scale-95
-              ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
-            `}
-            disabled={invitedUsers.length >= 3}
-          >
-            <Users className="w-5 h-5" />
-            <span>Check Progress</span>
-          </button>
-        );
-      
-      case 'claim':
-        return (
-          <button 
-            onClick={handleButtonAction}
-            className={`
-              flex items-center space-x-2 
-              px-4 py-2 
-              bg-gradient-to-r from-green-500 to-emerald-600 
-              text-white 
-              rounded-full 
-              transform transition-all duration-300
-              hover:scale-105 
-              active:scale-95
-              ${isProcessing ? 'animate-pulse' : ''}
-            `}
-          >
-            <Trophy className="w-5 h-5" />
-            <span>{isProcessing ? 'Claiming...' : 'Claim 5000 Points'}</span>
-          </button>
-        );
-      
-      case 'done':
-        return (
-          <div className="flex items-center space-x-2 text-green-400">
-            <CheckCircle className="w-6 h-6" />
-            <span>Task Completed!</span>
-          </div>
-        );
-    }
+    return (
+      <button 
+        onClick={handleButtonAction}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-105 
+          active:scale-95
+          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+        `}
+        disabled={invitedUsers.length >= 3}
+      >
+        <Users className="w-5 h-5" />
+        <span>Check Progress</span>
+      </button>
+    );
   }
 
   return (
@@ -313,7 +298,7 @@ export default function Invite() {
                 {renderTaskButton()}
               </div>
               
-              {checkMessage && buttonStage === 'check' && (
+              {checkMessage && (
                 <div className="text-yellow-300 text-sm">
                   {checkMessage}
                 </div>
@@ -321,6 +306,59 @@ export default function Invite() {
             </div>
           </div>
         </div>
+            )}
+
+            {/* UPI Payout Section */}
+            {invitedUsers.length === 3 && (
+              <div className="px-4 mt-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
+                    {!isUpiEditing ? (
+                      <button 
+                        onClick={() => setIsUpiEditing(true)} 
+                        className="text-blue-400 hover:text-blue-300"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    ) : null}
+                  </div>
+                  
+                  {isUpiEditing ? (
+                    <div className="flex space-x-2">
+                      <input 
+                        type="text" 
+                        placeholder="Enter UPI ID" 
+                        value={currentUpiId}
+                        onChange={(e) => setCurrentUpiId(e.target.value)}
+                        className="flex-grow p-2 rounded bg-gray-700 text-white"
+                      />
+                      <button 
+                        onClick={handleSaveUpiId}
+                        className="bg-green-500 text-white px-4 py-2 rounded"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/70">
+                        {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+                      </span>
+                      {!hasRequestedPayout ? (
+                        <button 
+                          onClick={handleRequestPayout}
+                          className="bg-blue-500 text-white px-4 py-2 rounded"
+                        >
+                          Request Payout
+                        </button>
+                      ) : (
+                        <Timer className="w-6 h-6 text-yellow-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
             
             {notification && (
