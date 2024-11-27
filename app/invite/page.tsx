@@ -23,6 +23,7 @@ export default function Invite() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [buttonState, setButtonState] = useState('initial')
+  const [taskCompleted, setTaskCompleted] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -84,6 +85,41 @@ export default function Invite() {
     }
   }
 
+  const handleClaimPoints = async () => {
+    if (invitedUsers.length >= 3 && !taskCompleted) {
+      try {
+        const response = await fetch('/api/claim-task', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            telegramId: user.telegramId,
+            taskType: 'invite_friends',
+            points: 5000
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          setTaskCompleted(true)
+          setNotification('5000 points claimed successfully!')
+          // Update user points in state
+          setUser(prev => ({
+            ...prev,
+            points: (prev.points || 0) + 5000
+          }))
+        } else {
+          setNotification(data.error || 'Failed to claim points')
+        }
+      } catch (err) {
+        console.error('Error claiming points:', err)
+        setNotification('An error occurred while claiming points')
+      }
+    }
+  }
+
   // Add dark mode classes to elements
   const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
   const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
@@ -93,12 +129,10 @@ export default function Invite() {
   const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
   const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
   const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
-  const emptyStateClass = `emptyState ${isDarkMode ? 'dark-mode' : ''}`
-  const notificationClass = `notification ${isDarkMode ? 'dark-mode' : ''}`
-  const footerContainerClass = `footerContainer ${isDarkMode ? 'dark-mode' : ''}`
-  const footerLinkClass = `footerLink ${isDarkMode ? 'dark-mode' : ''}`
-  const activeFooterLinkClass = `footerLink activeFooterLink ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedByClass = `invitedBy ${isDarkMode ? 'dark-mode' : ''}`
+  const tasksContainerClass = `tasksContainer ${isDarkMode ? 'dark-mode' : ''}`
+  const taskItemClass = `taskItem ${isDarkMode ? 'dark-mode' : ''}`
+  const progressBarClass = `progressBar ${isDarkMode ? 'dark-mode' : ''}`
+  const claimButtonClass = `claimButton ${isDarkMode ? 'dark-mode' : ''}`
 
   return (
     <div className={containerClass}>
@@ -135,14 +169,13 @@ export default function Invite() {
               onClick={handleInvite} 
               className={inviteButtonClass}
             >
-          
               <span className="buttonIcon">
                 <i className="fas fa-copy"></i> Copy Invite Link
               </span>
             </button>
 
             {user.invitedBy && (
-              <div className={invitedByClass}>
+              <div className={`invitedBy ${isDarkMode ? 'dark-mode' : ''}`}>
                 Invited by: {user.invitedBy}
               </div>
             )}
@@ -156,28 +189,58 @@ export default function Invite() {
                 <h2 className={invitedTitleClass}>Invited Friends : {invitedUsers.length}</h2>
               </div>
             </div>
+
+            <div className={tasksContainerClass}>
+              <div className={taskItemClass}>
+                <div className="taskTitle">
+                  Invite 3 Friends
+                </div>
+                <div className={progressBarClass}>
+                  <div 
+                    className="progressFill" 
+                    style={{ 
+                      width: `${Math.min(invitedUsers.length / 3 * 100, 100)}%`,
+                      backgroundColor: invitedUsers.length >= 3 ? 'green' : 'blue'
+                    }}
+                  ></div>
+                </div>
+                <div className="taskProgress">
+                  {invitedUsers.length}/3
+                </div>
+                {invitedUsers.length >= 3 && !taskCompleted && (
+                  <button 
+                    className={claimButtonClass}
+                    onClick={handleClaimPoints}
+                  >
+                    Claim 5000 Points
+                  </button>
+                )}
+              </div>
+            </div>
             
             {notification && (
-              <div className={notificationClass}>{notification}</div>
+              <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
+                {notification}
+              </div>
             )}
           </>
         )}
       </div>
-      <div className={footerContainerClass}>
+      <div className={`footerContainer ${isDarkMode ? 'dark-mode' : ''}`}>
         <Link href="/">
-          <a className={footerLinkClass}>
+          <a className={`footerLink ${isDarkMode ? 'dark-mode' : ''}`}>
             <i className="fas fa-home"></i>
             <span>Home</span>
           </a>
         </Link>
         <Link href="/invite">
-          <a className={activeFooterLinkClass}>
+          <a className={`footerLink activeFooterLink ${isDarkMode ? 'dark-mode' : ''}`}>
             <i className="fas fa-users"></i>
             <span>Friends</span>
           </a>
         </Link>
         <Link href="/leaderboard">
-          <a className={footerLinkClass}>
+          <a className={`footerLink ${isDarkMode ? 'dark-mode' : ''}`}>
             <i className="fas fa-trophy"></i>
             <span>Leaderboard</span>
           </a>
