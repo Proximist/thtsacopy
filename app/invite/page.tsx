@@ -105,10 +105,13 @@ export default function Invite() {
             setButtonState('initial')
             setNotification('')
           }, 300)
-        }, 5000)
+        }, 3000) // Set timeout to 3 seconds
       }).catch(err => {
         console.error('Failed to copy: ', err)
         setNotification('Failed to copy invite link. Please try again.')
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
       })
     }
   }
@@ -118,7 +121,10 @@ export default function Invite() {
       const remainingInvites = 3 - invitedUsers.length
       setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
       setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
- }
+      setTimeout(() => {
+        setNotification('')
+      }, 3000) // Set timeout to 3 seconds
+    }
   }
 
   // New function to handle UPI ID saving
@@ -142,10 +148,16 @@ export default function Invite() {
           setIsUpiEditing(false);
           setCurrentUpiId('');
           setNotification('UPI ID saved successfully!');
+          setTimeout(() => {
+            setNotification('')
+          }, 3000) // Set timeout to 3 seconds
         }
       } catch (error) {
         console.error('Error saving UPI ID:', error);
         setNotification('Failed to save UPI ID');
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
       }
     }
   }
@@ -169,10 +181,16 @@ export default function Invite() {
         if (data.success) {
           setHasRequestedPayout(true);
           setNotification('Payout request submitted!');
+          setTimeout(() => {
+            setNotification('')
+          }, 3000) // Set timeout to 3 seconds
         }
       } catch (error) {
         console.error('Error requesting payout:', error);
         setNotification('Failed to submit payout request');
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
       }
     }
   }
@@ -292,8 +310,7 @@ export default function Invite() {
                       className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
                       style={{ 
                         width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
-                        opacity: invitedUsers.length > 0 ? 1 : 0.3
-                      }}
+                        opacity: invitedUsers.length > 0 ? 1 : 0.3 }}
                     />
                   </div>
 
@@ -306,9 +323,8 @@ export default function Invite() {
                       }}
                     />
                   </div>
-            
 
-            <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-white/70">
                         Invited Friends: {Math.min(invitedUsers.length, 1)}/1
@@ -316,7 +332,7 @@ export default function Invite() {
                       {renderTaskButton()}
                     </div>
 
-                <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center">
                       <span className="text-white/70">
                         Invited Friends: {Math.min(invitedUsers.length, 3)}/3
                       </span>
@@ -329,8 +345,8 @@ export default function Invite() {
                       </span>
                       {renderTaskButton()}
                     </div>
-                
-                {checkMessage && (
+                    
+                    {checkMessage && (
                       <div className="text-yellow-300 text-sm">
                         {checkMessage}
                       </div>
@@ -360,41 +376,46 @@ export default function Invite() {
                 </div>
                 
                 {isUpiEditing ? (
-                  <div className="flex space-x-2">
-                    <input 
-                      type="text" 
-                      placeholder="Enter UPI ID" 
-                      value={currentUpiId}
-                      onChange={(e) => setCurrentUpiId(e.target.value)}
-                      className="flex-grow p-2 rounded bg-gray-700 text-white"
-                    />
-                    <button 
-                      onClick={handleSaveUpiId}
-                      className="bg-green-500 text-white px-4 py-2 rounded"
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/70">
-                      {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
-                    </span>
-                    {!hasRequestedPayout ? (
-                      <button 
-                        onClick={handleRequestPayout}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                        disabled={hasRequestedPayout} // Disable if payout has been requested
-                      >
-                        Request Payout
-                      </button>
-                    ) : (
-                      <Timer className="w-6 h-6 text-yellow-400" />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+  <div className="flex space-x-2">
+    <input 
+      type="text" 
+      placeholder="Enter UPI ID" 
+      value={currentUpiId}
+      onChange={(e) => setCurrentUpiId(e.target.value)}
+      className="flex-grow p-2 rounded bg-gray-700 text-white"
+    />
+    {!hasRequestedPayout ? (
+      <button 
+        onClick={() => {
+          handleSaveUpiId();
+          handleRequestPayout();
+        }}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Request Payout
+      </button>
+    ) : (
+      <Timer className="w-6 h-6 text-yellow-400" />
+    )}
+  </div>
+) : (
+  <div className="flex items-center justify-between">
+    <span className="text-white/70">
+      {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+    </span>
+    {!hasRequestedPayout ? (
+      <button 
+        onClick={handleRequestPayout}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+        disabled={hasRequestedPayout}
+      >
+        Request Payout
+      </button>
+    ) : (
+      <Timer className="w-6 h-6 text-yellow-400" />
+    )}
+  </div>
+)}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
