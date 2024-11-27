@@ -155,19 +155,8 @@ export default function Invite() {
                 </svg>
                 <h2 className={invitedTitleClass}>Invited Friends : {invitedUsers.length}</h2>
               </div>
-              {invitedUsers.length > 0 ? (
-                <ul className="invitedList">
-                  {invitedUsers.map((user, index) => (
-                    <li key={index}>{user}</li>
-                  ))}
-                </ul>
-              ) : (
-                <div className={emptyStateClass}>
-                  <p className="emptyStateText">The Invite List is empty</p>
-                </div>
-              )}
             </div>
-
+            
             {notification && (
               <div className={notificationClass}>{notification}</div>
             )}
