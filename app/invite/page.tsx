@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
 import { Trophy, Users, CheckCircle, Edit, Save, Clock, Lock, ChevronDown, ChevronUp } from 'lucide-react'
+import { motion } from 'framer-motion'
 import './invite.css'
 import '../globals.css'
 
@@ -342,11 +343,12 @@ useEffect(() => {
           </button>
   
           {isDropdownOpen && (
-            <div 
-              className="overflow-hidden transition-all duration-300 ease-in-out"
+            <motion.div 
+              className="overflow-hidden"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="flex items-center space-x-2 mt-4">
                 {isEditingUpi ? (
@@ -418,7 +420,7 @@ useEffect(() => {
                   )}
                 </button>
               )}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
