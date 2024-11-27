@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Trophy, Users, CheckCircle } from 'lucide-react'
+import { Trophy, Users, CheckCircle, Edit, Save, Clock, Lock, ChevronDown, ChevronUp } from 'lucide-react'
+import { motion } from 'framer-motion'
 import './invite.css'
 import '../globals.css'
 
@@ -13,11 +14,13 @@ type User = {
   username?: string;
   firstName?: string;
   lastName?: string;
-  points?: number;
+  points?: number;  
   invitedUsers?: string[];
   invitedBy?: string;
   currentTime?: Date;
   completedTasks?: string[];
+  upiIds?: string[];
+  upiRequests?: string[];
 }
 
 declare global {
@@ -40,6 +43,13 @@ export default function Invite() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
+
+  // New state for UPI management
+  const [upiId, setUpiId] = useState('')
+  const [savedUpiIds, setSavedUpiIds] = useState<string[]>([])
+  const [isEditingUpi, setIsEditingUpi] = useState(false)
+  const [upiRequestSubmitted, setUpiRequestSubmitted] = useState(false)
+  const [isUpiProcessing, setIsUpiProcessing] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -76,6 +86,10 @@ export default function Invite() {
               } else if (data.user.invitedUsers?.length === 3) {
                 setButtonStage('claim')
               }
+
+              // Set UPI-related states
+              setSavedUpiIds(data.user.upiIds || [])
+              setUpiRequestSubmitted(data.user.upiRequests && data.user.upiRequests.length > 0)
             }
           })
           .catch(() => {
@@ -88,6 +102,14 @@ export default function Invite() {
       setError('This app should be opened in Telegram')
     }
   }, [])
+
+  // Separate useEffect for UPI-related states
+useEffect(() => {
+  if (user) {
+    setSavedUpiIds(user.upiIds || [])
+    setUpiRequestSubmitted(!!user.upiRequests?.length)
+  }
+}, [user])
 
   const handleInvite = () => {
     if (inviteLink) {
@@ -160,6 +182,73 @@ export default function Invite() {
     }
   }
 
+  const handleSaveUpiId = async () => {
+    if (!user || !upiId.trim() || isUpiProcessing) return;
+
+    setIsUpiProcessing(true)
+    try {
+      const response = await fetch('/api/upi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          telegramId: user.telegramId,
+          upiId: upiId.trim(),
+          action: 'save'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSavedUpiIds(data.upiIds)
+        setIsEditingUpi(false)
+        setNotification('UPI ID saved successfully!')
+      } else {
+        setNotification(data.error || 'Failed to save UPI ID')
+      }
+    } catch (err) {
+      console.error('Error saving UPI ID:', err)
+      setNotification('An error occurred while saving UPI ID')
+    } finally {
+      setIsUpiProcessing(false)
+    }
+  }
+
+  const handleSubmitUpiRequest = async () => {
+    if (!user || !savedUpiIds.length || isUpiProcessing) return;
+
+    setIsUpiProcessing(true)
+    try {
+      const response = await fetch('/api/upi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          telegramId: user.telegramId,
+          upiId: savedUpiIds[savedUpiIds.length - 1], 
+          action: 'request'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setUpiRequestSubmitted(true)
+        setNotification('UPI withdrawal request submitted!')
+      } else {
+        setNotification(data.error || 'Failed to submit UPI request')
+      }
+    } catch (err) {
+      console.error('Error submitting UPI request:', err)
+      setNotification('An error occurred while submitting UPI request')
+    } finally {
+      setIsUpiProcessing(false)
+    }
+  }
+
   // Add dark mode classes to elements
   const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
   const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
@@ -169,10 +258,6 @@ export default function Invite() {
   const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
   const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
   const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
-  const tasksContainerClass = `tasksContainer ${isDarkMode ? 'dark-mode' : ''}`
-  const taskItemClass = `taskItem ${isDarkMode ? 'dark-mode' : ''}`
-  const progressBarClass = `progressBar ${isDarkMode ? 'dark-mode' : ''}`
-  const claimButtonClass = `claimButton ${isDarkMode ? 'dark-mode' : ''}`
 
   // Render button based on current stage
   const renderTaskButton = () => {
@@ -228,6 +313,118 @@ export default function Invite() {
           </div>
         );
     }
+  }
+
+  const renderUpiSection = () => {
+    // Only show UPI section if the invite task is completed
+    if (buttonStage !== 'done') {
+      return null
+    }
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const latestUpiId = savedUpiIds.length > 0 ? savedUpiIds[savedUpiIds.length - 1] : ''
+
+    return (
+      <div className="px-4 mt-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex justify-between items-center text-white font-semibold"
+          >
+            <div className="flex items-center space-x-2">
+              <Trophy className="w-6 h-6 text-yellow-400" />
+              <span>UPI Withdrawal</span>
+            </div>
+            {isDropdownOpen ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+  
+          {isDropdownOpen && (
+            <motion.div 
+              className="overflow-hidden"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center space-x-2 mt-4">
+                {isEditingUpi ? (
+                  <input 
+                    type="text" 
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="Enter UPI ID"
+                    className="flex-grow p-2 rounded-lg bg-gray-700 text-white"
+                    disabled={isUpiProcessing}
+                  />
+                ) : (
+                  <div className="flex-grow text-white/70">
+                    {latestUpiId || 'No UPI ID saved'}
+                  </div>
+                )}
+  
+                {isEditingUpi ? (
+                  <button 
+                    onClick={handleSaveUpiId}
+                    disabled={isUpiProcessing}
+                    className={`p-2 rounded-full ${
+                      isUpiProcessing 
+                        ? 'bg-gray-500 cursor-not-allowed' 
+                        : 'bg-green-500'
+                    }`}
+                  >
+                    {isUpiProcessing ? <Lock className="w-5 h-5 text-white" /> : <Save className="w-5 h-5 text-white" />}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setIsEditingUpi(true)}
+                    className="p-2 bg-blue-500 rounded-full"
+                  >
+                    <Edit className="w-5 h-5 text-white" />
+                  </button>
+                )}
+              </div>
+  
+              {latestUpiId && (
+                <button 
+                  onClick={handleSubmitUpiRequest}
+                  disabled={upiRequestSubmitted || isUpiProcessing}
+                  className={`
+                    w-full flex items-center justify-center 
+                    px-4 py-2 mt-4
+                    ${upiRequestSubmitted || isUpiProcessing 
+                      ? 'bg-gray-500 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-green-500 to-emerald-600'}
+                    text-white 
+                    rounded-full 
+                    transform transition-all duration-300
+                    hover:scale-105 
+                    active:scale-95
+                  `}
+                >
+                  {isUpiProcessing ? (
+                    <>
+                      <Lock className="w-5 h-5 mr-2" />
+                      Processing...
+                    </>
+                  ) : upiRequestSubmitted ? (
+                    <>
+                      <Clock className="w-5 h-5 mr-2" />
+                      Withdrawal Requested
+                    </>
+                  ) : (
+                    'Submit Withdrawal Request'
+                  )}
+                </button>
+              )}
+            </motion.div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -312,6 +509,7 @@ export default function Invite() {
                   Invited Friends: {invitedUsers.length}/3
                 </span>
                 {renderTaskButton()}
+                {renderUpiSection()}
               </div>
               
               {checkMessage && buttonStage === 'check' && (
