@@ -14,6 +14,7 @@ model User {
   firstName     String?
   lastName      String?
   points        Int      @default(0)
+  completedTasks String[] @default([])
   invitedUsers  String[] @default([])
   invitedBy     String?  @default("")
   currentTime   DateTime? @updatedAt
