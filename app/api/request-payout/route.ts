@@ -14,10 +14,7 @@ export async function POST(req: NextRequest) {
       where: { telegramId },
       data: {
         requests: {
-          push: {
-            upiId,
-            requestedAt: new Date()
-          }
+          push: `${upiId}_${new Date().toISOString()}`
         }
       }
     });
@@ -25,6 +22,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Error requesting payout:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to submit payout request' }, { status: 500 });
   }
 }
