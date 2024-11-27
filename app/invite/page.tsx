@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Trophy, Users, CheckCircle, Edit, Save, Clock, Lock } from 'lucide-react'
+import { Trophy, Users, CheckCircle, Edit, Save, Clock } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -48,7 +48,6 @@ export default function Invite() {
   const [savedUpiIds, setSavedUpiIds] = useState<string[]>([])
   const [isEditingUpi, setIsEditingUpi] = useState(false)
   const [upiRequestSubmitted, setUpiRequestSubmitted] = useState(false)
-  const [isUpiProcessing, setIsUpiProcessing] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -101,14 +100,6 @@ export default function Invite() {
       setError('This app should be opened in Telegram')
     }
   }, [])
-
-  useEffect(() => {
-
-    if (user) {
-    setSavedUpiIds(user.upiIds || [])
-    setUpiRequestSubmitted(!!user.upiRequests?.length)
-  }
-}, [user])
 
   const handleInvite = () => {
     if (inviteLink) {
@@ -182,9 +173,8 @@ export default function Invite() {
   }
 
   const handleSaveUpiId = async () => {
-    if (!user || !upiId.trim() || isUpiProcessing) return;
+    if (!user || !upiId.trim()) return;
 
-    setIsUpiProcessing(true)
     try {
       const response = await fetch('/api/upi', {
         method: 'POST',
@@ -210,16 +200,12 @@ export default function Invite() {
     } catch (err) {
       console.error('Error saving UPI ID:', err)
       setNotification('An error occurred while saving UPI ID')
-    } finally {
-      setIsUpiProcessing(false)
     }
   }
 
+  const handleSubmitUpiRequest = async () => {
+    if (!user || !savedUpiIds.length) return;
 
-   const handleSubmitUpiRequest = async () => {
-    if (!user || !savedUpiIds.length || isUpiProcessing) return;
-
-    setIsUpiProcessing(true)
     try {
       const response = await fetch('/api/upi', {
         method: 'POST',
@@ -228,7 +214,7 @@ export default function Invite() {
         },
         body: JSON.stringify({ 
           telegramId: user.telegramId,
-          upiId: savedUpiIds[savedUpiIds.length - 1], 
+          upiId: savedUpiIds[savedUpiIds.length - 1], // Use the latest saved UPI ID
           action: 'request'
         })
       });
@@ -244,8 +230,6 @@ export default function Invite() {
     } catch (err) {
       console.error('Error submitting UPI request:', err)
       setNotification('An error occurred while submitting UPI request')
-    } finally {
-      setIsUpiProcessing(false)
     }
   }
 
@@ -316,11 +300,6 @@ export default function Invite() {
   }
 
   const renderUpiSection = () => {
-    // Only show UPI section if the invite task is completed
-    if (buttonStage !== 'done') {
-      return null
-    }
-
     const latestUpiId = savedUpiIds.length > 0 ? savedUpiIds[savedUpiIds.length - 1] : ''
 
     return (
@@ -340,7 +319,6 @@ export default function Invite() {
                 onChange={(e) => setUpiId(e.target.value)}
                 placeholder="Enter UPI ID"
                 className="flex-grow p-2 rounded-lg bg-gray-700 text-white"
-                disabled={isUpiProcessing}
               />
             ) : (
               <div className="flex-grow text-white/70">
@@ -351,14 +329,9 @@ export default function Invite() {
             {isEditingUpi ? (
               <button 
                 onClick={handleSaveUpiId}
-                disabled={isUpiProcessing}
-                className={`p-2 rounded-full ${
-                  isUpiProcessing 
-                    ? 'bg-gray-500 cursor-not-allowed' 
-                    : 'bg-green-500'
-                }`}
+                className="p-2 bg-green-500 rounded-full"
               >
-                {isUpiProcessing ? <Lock className="w-5 h-5 text-white" /> : <Save className="w-5 h-5 text-white" />}
+                <Save className="w-5 h-5 text-white" />
               </button>
             ) : (
               <button 
@@ -373,11 +346,11 @@ export default function Invite() {
           {latestUpiId && (
             <button 
               onClick={handleSubmitUpiRequest}
-              disabled={upiRequestSubmitted || isUpiProcessing}
+              disabled={upiRequestSubmitted}
               className={`
                 w-full flex items-center justify-center 
                 px-4 py-2 
-                ${upiRequestSubmitted || isUpiProcessing 
+                ${upiRequestSubmitted 
                   ? 'bg-gray-500 cursor-not-allowed' 
                   : 'bg-gradient-to-r from-green-500 to-emerald-600'}
                 text-white 
@@ -387,12 +360,7 @@ export default function Invite() {
                 active:scale-95
               `}
             >
-              {isUpiProcessing ? (
-                <>
-                  <Lock className="w-5 h-5 mr-2" />
-                  Processing...
-                </>
-              ) : upiRequestSubmitted ? (
+              {upiRequestSubmitted ? (
                 <>
                   <Clock className="w-5 h-5 mr-2" />
                   Withdrawal Requested
