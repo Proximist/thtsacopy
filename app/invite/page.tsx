@@ -311,7 +311,21 @@ export default function Invite() {
             <div className="flex flex-col space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-white/70">
-                  Invited Friends: {invitedUsers.length}/3
+                Invited Friends: {Math.min(invitedUsers.length, 1)}/1
+                </span>
+                {renderTaskButton()}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">
+                Invited Friends: {Math.min(invitedUsers.length, 3)}/3
+                </span>
+                {renderTaskButton()}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">
+                Invited Friends: {Math.min(invitedUsers.length, 10)}/10
                 </span>
                 {renderTaskButton()}
               </div>
