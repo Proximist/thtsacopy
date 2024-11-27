@@ -17,6 +17,7 @@ type User = {
   invitedUsers?: string[];
   invitedBy?: string;
   currentTime?: Date;
+  completedTasks?: string[];
 }
 
 declare global {
@@ -35,9 +36,10 @@ export default function Invite() {
   const [invitedUsers, setInvitedUsers] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
+  const [buttonStage, setButtonStage] = useState<'check' | 'claim' | 'done'>('check')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
-  const [taskCompleted, setTaskCompleted] = useState(false)
-  const [isClicking, setIsClicking] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -67,6 +69,13 @@ export default function Invite() {
               setUser(data.user)
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
+              
+              // Determine initial button stage
+              if (data.user.completedTasks?.includes('invite_friends')) {
+                setButtonStage('done')
+              } else if (data.user.invitedUsers?.length === 3) {
+                setButtonStage('claim')
+              }
             }
           })
           .catch(() => {
@@ -99,41 +108,55 @@ export default function Invite() {
     }
   }
 
-  const handleClaimPoints = async () => {
-    if (invitedUsers.length >= 3 && !taskCompleted && user) {
-      try {
-        setIsClicking(true)
-        const response = await fetch('/api/claim-task', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            telegramId: user.telegramId,
-            taskType: 'invite_friends',
-            points: 5000
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          setTaskCompleted(true)
-          setNotification('5000 points claimed successfully!')
-          // Update user points in state
-          setUser(prev => prev ? ({
-            ...prev,
-            points: (prev.points || 0) + 5000
-          }) : null)
-        } else {
-          setNotification(data.error || 'Failed to claim points')
+  const handleButtonAction = async () => {
+    switch(buttonStage) {
+      case 'check':
+        // Check invite status
+        if (invitedUsers.length < 3) {
+          const remainingInvites = 3 - invitedUsers.length
+          setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
+          setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
         }
-      } catch (err) {
-        console.error('Error claiming points:', err)
-        setNotification('An error occurred while claiming points')
-      } finally {
-        setTimeout(() => setIsClicking(false), 500)
-      }
+        break;
+      
+      case 'claim':
+        if (invitedUsers.length >= 3 && user) {
+          try {
+            setIsProcessing(true)
+            const response = await fetch('/api/claim-task', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                telegramId: user.telegramId,
+                taskType: 'invite_friends',
+                points: 5000
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              setButtonStage('done')
+              setNotification('5000 points claimed successfully!')
+              // Update user points in state
+              setUser(prev => prev ? ({
+                ...prev,
+                points: (prev.points || 0) + 5000,
+                completedTasks: [...(prev.completedTasks || []), 'invite_friends']
+              }) : null)
+            } else {
+              setNotification(data.error || 'Failed to claim points')
+            }
+          } catch (err) {
+            console.error('Error claiming points:', err)
+            setNotification('An error occurred while claiming points')
+          } finally {
+            setIsProcessing(false)
+          }
+        }
+        break;
     }
   }
 
@@ -150,6 +173,62 @@ export default function Invite() {
   const taskItemClass = `taskItem ${isDarkMode ? 'dark-mode' : ''}`
   const progressBarClass = `progressBar ${isDarkMode ? 'dark-mode' : ''}`
   const claimButtonClass = `claimButton ${isDarkMode ? 'dark-mode' : ''}`
+
+  // Render button based on current stage
+  const renderTaskButton = () => {
+    switch(buttonStage) {
+      case 'check':
+        return (
+          <button 
+            onClick={handleButtonAction}
+            className={`
+              flex items-center space-x-2 
+              px-4 py-2 
+              bg-gradient-to-r from-blue-500 to-indigo-600 
+              text-white 
+              rounded-full 
+              transform transition-all duration-300
+              hover:scale-105 
+              active:scale-95
+              ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+            `}
+            disabled={invitedUsers.length >= 3}
+          >
+            <Users className="w-5 h-5" />
+            <span>Check Progress</span>
+          </button>
+        );
+      
+      case 'claim':
+        return (
+          <button 
+            onClick={handleButtonAction}
+            className={`
+              flex items-center space-x-2 
+              px-4 py-2 
+              bg-gradient-to-r from-green-500 to-emerald-600 
+              text-white 
+              rounded-full 
+              transform transition-all duration-300
+              hover:scale-105 
+              active:scale-95
+              ${isProcessing ? 'animate-pulse' : ''}
+            `}
+          >
+            <Trophy className="w-5 h-5" />
+            <span>{isProcessing ? 'Claiming...' : 'Claim 5000 Points'}</span>
+          </button>
+        );
+      
+      case 'done':
+        return (
+          <div className="flex items-center space-x-2 text-green-400">
+            <CheckCircle className="w-6 h-6" />
+            <span>Task Completed!</span>
+          </div>
+        );
+    }
+  }
 
   return (
     <div className={containerClass}>
@@ -227,35 +306,19 @@ export default function Invite() {
               />
             </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-white/70">
-                Invited Friends: {invitedUsers.length}/3
-              </span>
-              {invitedUsers.length >= 3 && !taskCompleted ? (
-                <button 
-                  onClick={handleClaimPoints}
-                  disabled={taskCompleted}
-                  className={`
-                    flex items-center space-x-2 
-                    px-4 py-2 
-                    bg-gradient-to-r from-green-500 to-emerald-600 
-                    text-white 
-                    rounded-full 
-                    transform transition-all duration-300
-                    hover:scale-105 
-                    active:scale-95
-                    ${isClicking ? 'animate-pulse' : ''}
-                  `}
-                >
-                  <Trophy className="w-5 h-5" />
-                  <span>Claim 5000 Points</span>
-                </button>
-              ) : taskCompleted ? (
-                <div className="flex items-center space-x-2 text-green-400">
-                  <CheckCircle className="w-6 h-6" />
-                  <span>Task Completed!</span>
+            <div className="flex flex-col space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-white/70">
+                  Invited Friends: {invitedUsers.length}/3
+                </span>
+                {renderTaskButton()}
+              </div>
+              
+              {checkMessage && buttonStage === 'check' && (
+                <div className="text-yellow-300 text-sm">
+                  {checkMessage}
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         </div>
