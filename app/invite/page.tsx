@@ -306,7 +306,7 @@ export default function Invite() {
             )}
 
             {/* UPI Payout Section */}
-            {invitedUsers.length >= 10 && (
+           {invitedUsers.length >= 3 && invitedUsers.length < 10 && (
   <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
     <div className="flex items-center justify-between">
       <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
