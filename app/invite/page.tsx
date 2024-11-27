@@ -281,11 +281,32 @@ export default function Invite() {
               <div 
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
                 style={{ 
-                  width: `${Math.min(invitedUsers.length / 3 * 100, 100)}%`,
+                  width: `${Math.min(invitedUsers.length / 1 * 100, 100)}%`,
                   opacity: invitedUsers.length > 0 ? 1 : 0.3
                 }}
               />
             </div>
+
+            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                style={{ 
+                  width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
+                  opacity: invitedUsers.length > 0 ? 1 : 0.3
+                }}
+              />
+            </div>
+
+            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                style={{ 
+                  width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
+                  opacity: invitedUsers.length > 0 ? 1 : 0.3
+                }}
+              />
+            </div>
+            
 
             <div className="flex flex-col space-y-2">
               <div className="flex justify-between items-center">
