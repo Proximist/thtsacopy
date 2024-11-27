@@ -105,10 +105,10 @@ export default function Invite() {
   useEffect(() => {
 
     if (user) {
-      setSavedUpiIds(user.upiIds || [])
-      setUpiRequestSubmitted(user.upiRequests && user.upiRequests.length > 0)
-    }
-  }, [user])
+    setSavedUpiIds(user.upiIds || [])
+    setUpiRequestSubmitted(!!user.upiRequests?.length)
+  }
+}, [user])
 
   const handleInvite = () => {
     if (inviteLink) {
