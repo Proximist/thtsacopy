@@ -31,7 +31,7 @@ declare global {
 }
 
 export default function Invite() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser ] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
   const [inviteLink, setInviteLink] = useState('')
@@ -54,9 +54,9 @@ export default function Invite() {
       tg.ready()
       const isDark = tg.colorScheme === 'dark'
       setIsDarkMode(isDark)
-  
+
       const initDataUnsafe = tg.initDataUnsafe || {}
-  
+
       if (initDataUnsafe.user) {
         fetch('/api/user', {
           method: 'POST',
@@ -70,7 +70,7 @@ export default function Invite() {
             if (data.error) {
               setError(data.error)
             } else {
-              setUser(data.user)
+              setUser (data.user)
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
               
@@ -118,7 +118,7 @@ export default function Invite() {
       const remainingInvites = 3 - invitedUsers.length
       setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
       setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
-    }
+ }
   }
 
   // New function to handle UPI ID saving
@@ -268,128 +268,133 @@ export default function Invite() {
             </div>
 
             {user && (
-        <div className="px-4 mt-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
-            <div className="flex items-center space-x-4">
-              <Users className="w-8 h-8 text-blue-400" />
-              <h3 className="text-xl font-semibold text-white">
-                Invite Challenge
-              </h3>
-            </div>
+              <div className="px-4 mt-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
+                  <div className="flex items-center space-x-4">
+                    <Users className="w-8 h-8 text-blue-400" />
+                    <h3 className="text-xl font-semibold text-white">
+                      Invite Challenge
+                    </h3>
+                  </div>
 
-            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                style={{ 
-                  width: `${Math.min(invitedUsers.length / 1 * 100, 100)}%`,
-                  opacity: invitedUsers.length > 0 ? 1 : 0.3
-                }}
-              />
-            </div>
+                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                      style={{ 
+                        width: `${Math.min(invitedUsers.length / 1 * 100, 100)}%`,
+                        opacity: invitedUsers.length > 0 ? 1 : 0.3
+                      }}
+                    />
+                  </div>
 
-            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                style={{ 
-                  width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
-                  opacity: invitedUsers.length > 0 ? 1 : 0.3
-                }}
-              />
-            </div>
+                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                      style={{ 
+                        width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
+                        opacity: invitedUsers.length > 0 ? 1 : 0.3
+                      }}
+                    />
+                  </div>
 
-            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                style={{ 
-                  width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
-                  opacity: invitedUsers.length > 0 ? 1 : 0.3
-                }}
-              />
-            </div>
+                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                      style={{ 
+                        width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
+                        opacity: invitedUsers.length > 0 ? 1 : 0.3
+                      }}
+                    />
+                  </div>
             
 
             <div className="flex flex-col space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-white/70">
-                Invited Friends: {Math.min(invitedUsers.length, 1)}/1
-                </span>
-                {renderTaskButton()}
-              </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/70">
+                        Invited Friends: {Math.min(invitedUsers.length, 1)}/1
+                      </span>
+                      {renderTaskButton()}
+                    </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-white/70">
-                Invited Friends: {Math.min(invitedUsers.length, 3)}/3
-                </span>
-                {renderTaskButton()}
-              </div>
+                <div className="flex justify-between items-center">
+                      <span className="text-white/70">
+                        Invited Friends: {Math.min(invitedUsers.length, 3)}/3
+                      </span>
+                      {renderTaskButton()}
+                    </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-white/70">
-                Invited Friends: {Math.min(invitedUsers.length, 10)}/10
-                </span>
-                {renderTaskButton()}
-              </div>
-              
-              {checkMessage && (
-                <div className="text-yellow-300 text-sm">
-                  {checkMessage}
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/70">
+                        Invited Friends: {Math.min(invitedUsers.length, 10)}/10
+                      </span>
+                      {renderTaskButton()}
+                    </div>
+                
+                {checkMessage && (
+                      <div className="text-yellow-300 text-sm">
+                        {checkMessage}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+              </div>
             )}
 
             {/* UPI Payout Section */}
-           {invitedUsers.length >= 3 && invitedUsers.length < 10 && (
-  <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
-    <div className="flex items-center justify-between">
-      <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
-      {!isUpiEditing ? (
-        <button 
-          onClick={() => setIsUpiEditing(true)} 
-          className="text-blue-400 hover:text-blue-300"
-        >
-          <Edit className="w-5 h-5" />
-        </button>
-      ) : null}
-    </div>
-    
-    {isUpiEditing ? (
-      <div className="flex space-x-2">
-        <input 
-          type="text" 
-          placeholder="Enter UPI ID" 
-          value={currentUpiId}
-          onChange={(e) => setCurrentUpiId(e.target.value)}
-          className="flex-grow p-2 rounded bg-gray-700 text-white"
-        />
-        <button 
-          onClick={handleSaveUpiId}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Save
-        </button>
-      </div>
-    ) : (
-      <div className="flex items-center justify-between">
-        <span className="text-white/70">
-          {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
-        </span>
-        {!hasRequestedPayout ? (
-          <button 
-            onClick={handleRequestPayout}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            Request Payout
-          </button>
-        ) : (
-          <Timer className="w-6 h-6 text-yellow-400" />
-        )}
-      </div>
-    )}
-  </div>
-)}
+            {(
+              invitedUsers.length === 1 || 
+              invitedUsers.length === 3 || 
+              invitedUsers.length === 10
+            ) && (  
+              <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-white">UPI Payout</h3>
+                  {!isUpiEditing ? (
+                    <button 
+                      onClick={() => setIsUpiEditing(true)} 
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                  ) : null}
+                </div>
+                
+                {isUpiEditing ? (
+                  <div className="flex space-x-2">
+                    <input 
+                      type="text" 
+                      placeholder="Enter UPI ID" 
+                      value={currentUpiId}
+                      onChange={(e) => setCurrentUpiId(e.target.value)}
+                      className="flex-grow p-2 rounded bg-gray-700 text-white"
+                    />
+                    <button 
+                      onClick={handleSaveUpiId}
+                      className="bg-green-500 text-white px-4 py-2 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/70">
+                      {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+                    </span>
+                    {!hasRequestedPayout ? (
+                      <button 
+                        onClick={handleRequestPayout}
+                        className="bg-blue-500 text-white px-4 py-2 rounded"
+                        disabled={hasRequestedPayout} // Disable if payout has been requested
+                      >
+                        Request Payout
+                      </button>
+                    ) : (
+                      <Timer className="w-6 h-6 text-yellow-400" />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
