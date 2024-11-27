@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
+import { Trophy, Users, CheckCircle } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -36,6 +37,7 @@ export default function Invite() {
   const [isCopied, setIsCopied] = useState(false)
   const [buttonState, setButtonState] = useState('initial')
   const [taskCompleted, setTaskCompleted] = useState(false)
+  const [isClicking, setIsClicking] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -100,6 +102,7 @@ export default function Invite() {
   const handleClaimPoints = async () => {
     if (invitedUsers.length >= 3 && !taskCompleted && user) {
       try {
+        setIsClicking(true)
         const response = await fetch('/api/claim-task', {
           method: 'POST',
           headers: {
@@ -128,6 +131,8 @@ export default function Invite() {
       } catch (err) {
         console.error('Error claiming points:', err)
         setNotification('An error occurred while claiming points')
+      } finally {
+        setTimeout(() => setIsClicking(false), 500)
       }
     }
   }
@@ -192,43 +197,59 @@ export default function Invite() {
               </div>
             )}
 
-            <div className={invitedSectionClass}>
-              <div className={invitedHeaderClass}>
-                <svg className="invitedIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <h2 className={invitedTitleClass}>Invited Friends : {invitedUsers.length}</h2>
-              </div>
+{user && (
+        <div className="px-4 mt-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <Users className="w-8 h-8 text-blue-400" />
+              <h3 className="text-xl font-semibold text-white">
+                Invite Challenge
+              </h3>
             </div>
 
-            <div className={tasksContainerClass}>
-              <div className={taskItemClass}>
-                <div className="taskTitle">
-                  Invite 3 Friends
-                </div>
-                <div className={progressBarClass}>
-                  <div 
-                    className="progressFill" 
-                    style={{ 
-                      width: `${Math.min(invitedUsers.length / 3 * 100, 100)}%`,
-                      backgroundColor: invitedUsers.length >= 3 ? 'green' : 'blue'
-                    }}
-                  ></div>
-                </div>
-                <div className="taskProgress">
-                  {invitedUsers.length}/3
-                </div>
-                {invitedUsers.length >= 3 && !taskCompleted && (
-                  <button 
-                    className={claimButtonClass}
-                    onClick={handleClaimPoints}
-                  >
-                    Claim 5000 Points
-                  </button>
-                )}
-              </div>
+            <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+                style={{ 
+                  width: `${Math.min(invitedUsers.length / 3 * 100, 100)}%`,
+                  opacity: invitedUsers.length > 0 ? 1 : 0.3
+                }}
+              />
             </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-white/70">
+                Invited Friends: {invitedUsers.length}/3
+              </span>
+              {invitedUsers.length >= 3 && !taskCompleted ? (
+                <button 
+                  onClick={handleClaimPoints}
+                  disabled={taskCompleted}
+                  className={`
+                    flex items-center space-x-2 
+                    px-4 py-2 
+                    bg-gradient-to-r from-green-500 to-emerald-600 
+                    text-white 
+                    rounded-full 
+                    transform transition-all duration-300
+                    hover:scale-105 
+                    active:scale-95
+                    ${isClicking ? 'animate-pulse' : ''}
+                  `}
+                >
+                  <Trophy className="w-5 h-5" />
+                  <span>Claim 5000 Points</span>
+                </button>
+              ) : taskCompleted ? (
+                <div className="flex items-center space-x-2 text-green-400">
+                  <CheckCircle className="w-6 h-6" />
+                  <span>Task Completed!</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
