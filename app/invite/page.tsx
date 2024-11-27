@@ -415,7 +415,9 @@ export default function Invite() {
       <Timer className="w-6 h-6 text-yellow-400" />
     )}
   </div>
-)}
+                )}
+              </div>
+            )}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
