@@ -89,6 +89,25 @@ export default function Invite() {
     }
   }, [])
 
+  const handleInvite = () => {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink).then(() => {
+        setButtonState('copied')
+        setNotification('Invite link copied to clipboard!')
+        setTimeout(() => {
+          setButtonState('fadeOut')
+          setTimeout(() => {
+            setButtonState('initial')
+            setNotification('')
+          }, 300)
+        }, 5000)
+      }).catch(err => {
+        console.error('Failed to copy: ', err)
+        setNotification('Failed to copy invite link. Please try again.')
+      })
+    }
+  }
+
   const handleButtonAction = async () => {
     switch(buttonStage) {
       case 'check':
@@ -302,7 +321,7 @@ export default function Invite() {
             </div>
           </div>
         </div>
-      )}
+            )}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
