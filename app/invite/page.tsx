@@ -247,7 +247,7 @@ export default function Invite() {
         disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹2</span>
+        <span>₹5</span>
       </button>
     );
   }
@@ -270,7 +270,7 @@ export default function Invite() {
         disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹2</span>
+        <span>₹30</span>
       </button>
     );
   }
