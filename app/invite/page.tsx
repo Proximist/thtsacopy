@@ -229,6 +229,52 @@ export default function Invite() {
     );
   }
 
+  const renderTaskButton1 = () => {
+    return (
+      <button 
+        onClick={handleButtonAction}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-55 
+          active:scale-45
+          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+        `}
+        disabled={invitedUsers.length >= 3}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹2</span>
+      </button>
+    );
+  }
+
+  const renderTaskButton2 = () => {
+    return (
+      <button 
+        onClick={handleButtonAction}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-55 
+          active:scale-45
+          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+        `}
+        disabled={invitedUsers.length >= 3}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹2</span>
+      </button>
+    );
+  }
+
   return (
     <div className={containerClass}>
       <div className="backgroundShapes"></div>
@@ -327,7 +373,7 @@ export default function Invite() {
             <span className="text-white/70">
               Invite 3 Friends
             </span>
-            {renderTaskButton()}
+            {renderTaskButton1()}
           </div>
           <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
             <div 
@@ -346,7 +392,7 @@ export default function Invite() {
             <span className="text-white/70">
               Invite 10 Friends
             </span>
-            {renderTaskButton()}
+            {renderTaskButton2()}
           </div>
           <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
             <div 
