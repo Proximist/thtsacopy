@@ -7,6 +7,7 @@ import { Users, Edit, Timer } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
+// Define a type for the user object
 type User = {
   telegramId: number;
   username?: string;
@@ -19,7 +20,6 @@ type User = {
   completedTasks?: string[];
   upiIds?: string[];
   requests?: { upiId: string, requestedAt: Date }[];
-  claimedBalances?: { [key: string]: boolean };
 }
 
 declare global {
@@ -31,20 +31,13 @@ declare global {
 }
 
 export default function Invite() {
-  const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
-  const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
-  const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
-  const titleClass = `title ${isDarkMode ? 'dark-mode' : ''}`
-  const inviteButtonClass = `inviteButton ${buttonState} ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser ] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
   const [inviteLink, setInviteLink] = useState('')
   const [invitedUsers, setInvitedUsers] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
   const [buttonStage, setButtonStage] = useState<'check'>('check')
   const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
@@ -54,8 +47,6 @@ export default function Invite() {
   const [currentUpiId, setCurrentUpiId] = useState('')
   const [isUpiEditing, setIsUpiEditing] = useState(false)
   const [hasRequestedPayout, setHasRequestedPayout] = useState(false)
-  const [claimedBalances, setClaimedBalances] = useState<{[key: string]: boolean}>({})
-  const [totalBalance, setTotalBalance] = useState(0)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -79,7 +70,7 @@ export default function Invite() {
             if (data.error) {
               setError(data.error)
             } else {
-              setUser(data.user)
+              setUser (data.user)
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
               
@@ -90,14 +81,6 @@ export default function Invite() {
               
               // Check if payout request exists
               setHasRequestedPayout(data.user.requests && data.user.requests.length > 0)
-              
-              // Set initial claimed balances
-              const initialClaimedBalances = {
-                '1invite': false,
-                '3invites': false,
-                '10invites': false
-              }
-              setClaimedBalances(initialClaimedBalances)
             }
           })
           .catch(() => {
@@ -111,126 +94,187 @@ export default function Invite() {
     }
   }, [])
 
-  // New function to claim task reward
-  const claimTaskReward = async (taskType: string, points: number) => {
-    try {
-      const response = await fetch('/api/claim-task', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          telegramId: user?.telegramId, 
-          taskType, 
-          points 
-        })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        // Update claimed balances and total balance
-        setClaimedBalances(prev => ({
-          ...prev, 
-          [taskType]: true
-        }));
-        
-        // Calculate total balance
-        const newBalance = calculateTotalBalance();
-        setTotalBalance(newBalance);
-        
-        setNotification(`Successfully claimed ₹${points}!`);
-        setTimeout(() => setNotification(''), 3000);
-        return true;
-      }
-    } catch (error) {
-      console.error('Error claiming task:', error);
-      setNotification('Failed to claim task');
-      setTimeout(() => setNotification(''), 3000);
+  const handleInvite = () => {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink).then(() => {
+        setButtonState('copied')
+        setNotification('Invite link copied to clipboard!')
+        setTimeout(() => {
+          setButtonState('fadeOut')
+          setTimeout(() => {
+            setButtonState('initial')
+            setNotification('')
+          }, 300)
+        }, 3000) // Set timeout to 3 seconds
+      }).catch(err => {
+        console.error('Failed to copy: ', err)
+        setNotification('Failed to copy invite link. Please try again.')
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
+      })
     }
-    return false;
   }
 
-  // Calculate total balance based on claimed tasks
-  const calculateTotalBalance = () => {
-    let total = 0;
-    if (claimedBalances['1invite']) total += 2;
-    if (claimedBalances['3invites']) total += 5;
-    if (claimedBalances['10invites']) total += 30;
-    return total;
+  const handleButtonAction = () => {
+    if (invitedUsers.length < 3) {
+      const remainingInvites = 3 - invitedUsers.length
+      setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
+      setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
+      setTimeout(() => {
+        setNotification('')
+      }, 3000) // Set timeout to 3 seconds
+    }
   }
 
-  // Render task button with claim functionality
+  // New function to handle UPI ID saving
+  const handleSaveUpiId = async () => {
+    if (currentUpiId.trim() && user) {
+      try {
+        const response = await fetch('/api/save-upi', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            telegramId: user.telegramId, 
+            upiId: currentUpiId 
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          setUpiIds(prev => [...prev, currentUpiId]);
+          setIsUpiEditing(false);
+          setCurrentUpiId('');
+          setNotification('UPI ID saved successfully!');
+          setTimeout(() => {
+            setNotification('')
+          }, 3000) // Set timeout to 3 seconds
+        }
+      } catch (error) {
+        console.error('Error saving UPI ID:', error);
+        setNotification('Failed to save UPI ID');
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
+      }
+    }
+  }
+
+  // New function to handle payout request
+  const handleRequestPayout = async () => {
+    if (upiIds.length > 0 && user) {
+      try {
+        const response = await fetch('/api/request-payout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            telegramId: user.telegramId, 
+            upiId: upiIds[upiIds.length - 1] 
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          setHasRequestedPayout(true);
+          setNotification('Payout request submitted!');
+          setTimeout(() => {
+            setNotification('')
+          }, 3000) // Set timeout to 3 seconds
+        }
+      } catch (error) {
+        console.error('Error requesting payout:', error);
+        setNotification('Failed to submit payout request');
+        setTimeout(() => {
+          setNotification('')
+        }, 3000) // Set timeout to 3 seconds
+      }
+    }
+  }
+
+  // Add dark mode classes to elements
+  const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
+  const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
+  const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
+  const titleClass = `title ${isDarkMode ? 'dark-mode' : ''}`
+  const inviteButtonClass = `inviteButton ${buttonState} ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
+
+  // Render button based on current stage
   const renderTaskButton = () => {
-    const isClaimable = invitedUsers.length >= 1 && !claimedBalances['1invite'];
     return (
       <button 
-        onClick={() => isClaimable && claimTaskReward('1invite', 2)}
+        onClick={handleButtonAction}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
-          ${isClaimable 
-            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white' 
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'}
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
           rounded-full 
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
+          ${invitedUsers.length < 1 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={!isClaimable}
+        disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹2</span>
+        <span>₹2 </span>
       </button>
     );
   }
 
   const renderTaskButton1 = () => {
-    const isClaimable = invitedUsers.length >= 3 && !claimedBalances['3invites'];
     return (
       <button 
-        onClick={() => isClaimable && claimTaskReward('3invites', 5)}
+        onClick={handleButtonAction}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
-          ${isClaimable 
-            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white' 
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'}
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
           rounded-full 
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
+          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={!isClaimable}
+        disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹5</span>
+        <span>₹5 </span>
       </button>
     );
   }
 
   const renderTaskButton2 = () => {
-    const isClaimable = invitedUsers.length >= 10 && !claimedBalances['10invites'];
     return (
       <button 
-        onClick={() => isClaimable && claimTaskReward('10invites', 30)}
+        onClick={handleButtonAction}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
-          ${isClaimable 
-            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white' 
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'}
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
           rounded-full 
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
+          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={!isClaimable}
+        disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
         <span>₹30</span>
       </button>
     );
   }
+
   return (
     <div className={containerClass}>
       <div className="backgroundShapes"></div>
@@ -372,13 +416,10 @@ export default function Invite() {
 )}
 
             {/* UPI Payout Section */}
-         {(invitedUsers.length >= 1 || invitedUsers.length >= 3 || invitedUsers.length >= 10) && (
-    <div className="mt-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden">
-      <div className="p-4 flex flex-col items-center">
-        <h3 className="text-2xl font-bold text-white">UPI Payout</h3>
-        <div className="text-6xl font-extrabold text-white mt-2 mb-4">
-          ₹{totalBalance}
-        </div>
+            {(invitedUsers.length === 1 || invitedUsers.length === 3 || invitedUsers.length === 10) && (
+              <div className="mt-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden">
+                <div className="p-4 flex flex-row items-center justify-between">
+                  <h3 className="text-2xl font-bold text-white">UPI Payout</h3>
                   {!isUpiEditing && (
                     <button
                       onClick={() => setIsUpiEditing(true)}
