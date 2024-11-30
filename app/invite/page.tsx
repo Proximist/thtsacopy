@@ -223,7 +223,7 @@ export default function Invite() {
         `}
         disabled={invitedUsers.length >= 3}
       >
-        <Users className="w-5 h-5" />
+        <Users className="w-3 h-3" />
         <span>Check Progress</span>
       </button>
     );
