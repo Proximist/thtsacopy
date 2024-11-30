@@ -219,12 +219,12 @@ export default function Invite() {
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+          ${invitedUsers.length < 1 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
         disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹2</span>
+        <span>₹2 </span>
       </button>
     );
   }
@@ -247,7 +247,7 @@ export default function Invite() {
         disabled={invitedUsers.length >= 3}
       >
         <Users className="w-5 h-5" />
-        <span>₹5</span>
+        <span>₹5 </span>
       </button>
     );
   }
