@@ -223,7 +223,7 @@ export default function Invite() {
         `}
         disabled={invitedUsers.length >= 3}
       >
-        <Money className="w-5 h-5" />
+        <Users className="w-5 h-5" />
         <span>₹2</span>
       </button>
     );
