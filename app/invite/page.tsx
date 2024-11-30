@@ -291,76 +291,83 @@ export default function Invite() {
               </div>
             </div>
 
-            {user && (
-              <div className="px-4 mt-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
-                  <div className="flex items-center space-x-4">
-                    <Users className="w-8 h-8 text-blue-400" />
-                    <h3 className="text-xl font-semibold text-white">
-                      Invite Challenge
-                    </h3>
-                  </div>
+    {user && (
+  <div className="px-4 mt-4">
+    <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-4 shadow-lg">
+      <div className="flex items-center space-x-4">
+        <Users className="w-8 h-8 text-blue-400" />
+        <h3 className="text-xl font-semibold text-white">
+          Invite Challenge
+        </h3>
+      </div>
 
-                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                      style={{ 
-                        width: `${Math.min(invitedUsers.length / 1 * 100, 100)}%`,
-                        opacity: invitedUsers.length > 0 ? 1 : 0.3
-                      }}
-                    />
-                  </div>
+      <div className="space-y-4">
+        {/* First Task */}
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">
+              Invite 1 Friend
+            </span>
+            {renderTaskButton()}
+          </div>
+          <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+              style={{ 
+                width: `${Math.min(invitedUsers.length / 1 * 100, 100)}%`,
+                opacity: invitedUsers.length > 0 ? 1 : 0.3
+              }}
+            />
+          </div>
+        </div>
 
-                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                      style={{ 
-                        width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
-                        opacity: invitedUsers.length > 0 ? 1 : 0.3 }}
-                    />
-                  </div>
+        {/* Second Task */}
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">
+              Invite 3 Friends
+            </span>
+            {renderTaskButton()}
+          </div>
+          <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+              style={{ 
+                width: `${Math.min(invitedUsers.length / 5 * 100, 100)}%`,
+                opacity: invitedUsers.length > 0 ? 1 : 0.3
+              }}
+            />
+          </div>
+        </div>
 
-                  <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
-                      style={{ 
-                        width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
-                        opacity: invitedUsers.length > 0 ? 1 : 0.3
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/70">
-                        Invited Friends: {Math.min(invitedUsers.length, 1)}/1
-                      </span>
-                      {renderTaskButton()}
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/70">
-                        Invited Friends: {Math.min(invitedUsers.length, 3)}/3
-                      </span>
-                      {renderTaskButton()}
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/70">
-                        Invited Friends: {Math.min(invitedUsers.length, 10)}/10
-                      </span>
-                      {renderTaskButton()}
-                    </div>
-                    
-                    {checkMessage && (
-                      <div className="text-yellow-300 text-sm">
-                        {checkMessage}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Third Task */}
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">
+              Invite 10 Friends
+            </span>
+            {renderTaskButton()}
+          </div>
+          <div className="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-in-out"
+              style={{ 
+                width: `${Math.min(invitedUsers.length / 10 * 100, 100)}%`,
+                opacity: invitedUsers.length > 0 ? 1 : 0.3
+              }}
+            />
+          </div>
+        </div>
+        
+        {checkMessage && (
+          <div className="text-yellow-300 text-sm">
+            {checkMessage}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
             {/* UPI Payout Section */}
             {(invitedUsers.length === 1 || invitedUsers.length === 3 || invitedUsers.length === 10) && (
