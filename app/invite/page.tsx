@@ -31,6 +31,14 @@ declare global {
 }
 
 export default function Invite() {
+  const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
+  const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
+  const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
+  const titleClass = `title ${isDarkMode ? 'dark-mode' : ''}`
+  const inviteButtonClass = `inviteButton ${buttonState} ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
+  const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
