@@ -217,8 +217,8 @@ export default function Invite() {
           text-white 
           rounded-full 
           transform transition-all duration-300
-          hover:scale-105 
-          active:scale-95
+          hover:scale-55 
+          active:scale-45
           ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
         disabled={invitedUsers.length >= 3}
