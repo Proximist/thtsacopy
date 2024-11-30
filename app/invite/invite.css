@@ -114,108 +114,8 @@
   }
   100% {
     transform: translate(0, 0) rotate(360deg);
-    opacity: 0;
+    opacity:  0;
   }
-}
-
-/* Rest of your existing CSS styles... */
-[Previous CSS content continues unchanged...]
-/* Core Layout */
-.container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  height: 100vh;
-  background: linear-gradient(120deg, #0F172A 0%, #1E293B 100%);
-  color: #E2E8F0;
-  font-family: "Outfit", sans-serif;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-}
-
-.container.dark-mode {
-  background: linear-gradient(120deg, #020617 0%, #0F172A 100%);
-}
-
-/* Animated Background */
-.backgroundShapes {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.backgroundShapes::before {
-  content: '';
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: repeating-linear-gradient(
-    transparent 0%,
-    rgba(255, 255, 255, 0.05) 0.5%,
-    transparent 1%
-  );
-  animation: backgroundMove 15s linear infinite;
-}
-
-@keyframes backgroundMove {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(-50%) rotate(15deg); }
-}
-
-/* Glowing Orbs */
-.glowingOrbs {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.5;
-  animation: orbFloat 20s infinite ease-in-out;
-}
-
-.orb:nth-child(1) {
-  top: -100px;
-  left: -100px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(99,102,241,0.4) 0%, rgba(99,102,241,0) 70%);
-  animation-delay: -5s;
-}
-
-.orb:nth-child(2) {
-  top: 50%;
-  right: -100px;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, rgba(244,63,94,0.4) 0%, rgba(244,63,94,0) 70%);
-  animation-delay: -2.5s;
-}
-
-.orb:nth-child(3) {
-  bottom: -100px;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(168,85,247,0) 70%);
-  animation-delay: -7.5s;
-}
-
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(50px, -50px); }
-  50% { transform: translate(0, -100px); }
-  75% { transform: translate(-50px, -50px); }
 }
 
 /* Content Area */
@@ -355,20 +255,6 @@
   position: relative;
 }
 
-.invitedIcon {
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-right: 1rem;
-  color: #8B5CF6;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.1); filter: brightness(1.2); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-
 .invitedTitle {
   font-size: 1.25rem;
   font-weight: 700;
@@ -378,49 +264,11 @@
   gap: 0.5rem;
 }
 
-.invitedList {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.invitedList li {
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  transition: all 0.3s ease;
-  animation: fadeInSlide 0.5s ease-out forwards;
-  opacity: 0;
-  transform: translateX(-20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.invitedList li::before {
-  content: '👤';
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.invitedList li:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(5px);
-}
-
-@keyframes fadeInSlide {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 /* Notification */
 .notification {
   position: fixed;
   bottom: 80px;
-  left: 50%;
+ left: 50%;
   transform: translateX(-50%);
   z-index: 30;
   padding: 1rem 2rem;
@@ -509,24 +357,6 @@
   0% { transform: translateX(-50%) scale(1); opacity: 1; }
   50% { transform: translateX(-50%) scale(1.5); opacity: 0.5; }
   100% { transform: translateX(-50%) scale(1); opacity: 1; }
-}
-
-/* Empty State Animation */
-.emptyState {
-  text-align: center;
-  padding: 2rem 0;
-  animation: emptyStatePulse 2s infinite;
-}
-
-.emptyStateText {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #94A3B8;
-}
-
-@keyframes emptyStatePulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
 }
 
 /* Staggered Animations */
