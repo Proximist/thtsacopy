@@ -124,10 +124,20 @@ export default function Invite() {
       });
       
       const data = await response.json();
-      if (data.success) {
-        if (points === 2) setTaskButton1Claimed(true);
-        if (points === 5) setTaskButton2Claimed(true);
-        if (points === 30) setTaskButton3Claimed(true);
+    if (data.success) {
+      if (points === 2) {
+        setTaskButton1Claimed(true);
+        // Optionally, update the user object to reflect the change
+        setUser(prev => prev ? {...prev, taskButton1: true} : null);
+      }
+      if (points === 5) {
+        setTaskButton2Claimed(true);
+        setUser(prev => prev ? {...prev, taskButton2: true} : null);
+      }
+      if (points === 30) {
+        setTaskButton3Claimed(true);
+        setUser(prev => prev ? {...prev, taskButton3: true} : null);
+      }
         
         setNotification(`Task completed! Earned ₹${points}`);
         setTimeout(() => {
@@ -175,7 +185,8 @@ export default function Invite() {
 
   // Render task buttons with claim functionality
   const renderTaskButton = () => {
-  if (taskButton1Claimed) {
+  // Always show as claimed if taskButton1Claimed is true
+  if (taskButton1Claimed || invitedUsers.length >= 1) {
     return (
       <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
         <CheckCircle className="w-5 h-5" />
@@ -198,7 +209,7 @@ export default function Invite() {
         active:scale-45
         ${invitedUsers.length < 1 ? 'opacity-50 cursor-not-allowed' : ''}
       `}
-      disabled={invitedUsers.length < 1 || taskButton1Claimed}
+      disabled={invitedUsers.length < 1}
     >
       <Users className="w-5 h-5" />
       <span>₹2 </span>
@@ -207,7 +218,8 @@ export default function Invite() {
 }
 
 const renderTaskButton1 = () => {
-  if (taskButton2Claimed) {
+  // Always show as claimed if taskButton2Claimed is true or invited users meet the condition
+  if (taskButton2Claimed || invitedUsers.length >= 3) {
     return (
       <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
         <CheckCircle className="w-5 h-5" />
@@ -230,7 +242,7 @@ const renderTaskButton1 = () => {
         active:scale-45
         ${invitedUsers.length < 3 ? 'opacity-50 cursor-not-allowed' : ''}
       `}
-      disabled={invitedUsers.length < 3 || taskButton2Claimed}
+      disabled={invitedUsers.length < 3}
     >
       <Users className="w-5 h-5" />
       <span>₹5 </span>
@@ -239,7 +251,8 @@ const renderTaskButton1 = () => {
 }
 
 const renderTaskButton2 = () => {
-  if (taskButton3Claimed) {
+  // Always show as claimed if taskButton3Claimed is true or invited users meet the condition
+  if (taskButton3Claimed || invitedUsers.length >= 10) {
     return (
       <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
         <CheckCircle className="w-5 h-5" />
@@ -262,7 +275,7 @@ const renderTaskButton2 = () => {
         active:scale-45
         ${invitedUsers.length < 10 ? 'opacity-50 cursor-not-allowed' : ''}
       `}
-      disabled={invitedUsers.length < 10 || taskButton3Claimed}
+      disabled={invitedUsers.length < 10}
     >
       <Users className="w-5 h-5" />
       <span>₹30</span>
