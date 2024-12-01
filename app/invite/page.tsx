@@ -42,6 +42,14 @@ export default function Invite() {
   const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
   const [completedTasks, setCompletedTasks] = useState<string[]>([])
+  const containerClass = `relative min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900 text-white overflow-hidden`;
+  const contentClass = `relative z-10 px-4 py-8`;
+  const headerClass = `text-center mb-6`;
+  const titleClass = `text-2xl font-bold text-white mt-4`;
+  const inviteButtonClass = `w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-full mt-6 flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity`;
+  const invitedSectionClass = `mt-6`;
+  const invitedHeaderClass = `flex items-center space-x-2`;
+  const invitedTitleClass = `text-xl font-semibold`;
 
   // UPI-related states
   const [upiIds, setUpiIds] = useState<string[]>([])
