@@ -20,6 +20,9 @@ type User = {
   completedTasks?: string[];
   upiIds?: string[];
   requests?: { upiId: string, requestedAt: Date }[];
+  taskButton1?: boolean;
+  taskButton2?: boolean;
+  taskButton3?: boolean;
 }
 
 declare global {
@@ -31,20 +34,20 @@ declare global {
 }
 
 export default function Invite() {
-  const [user, setUser ] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
   const [inviteLink, setInviteLink] = useState('')
   const [invitedUsers, setInvitedUsers] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
-  const [buttonStage, setButtonStage] = useState<'check'>('check')
-  const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
+  const [checkMessage, setCheckMessage] = useState('')
+
+  // Task button states
   const [taskButton1Claimed, setTaskButton1Claimed] = useState(false);
   const [taskButton2Claimed, setTaskButton2Claimed] = useState(false);
   const [taskButton3Claimed, setTaskButton3Claimed] = useState(false);
-
 
   // UPI-related states
   const [upiIds, setUpiIds] = useState<string[]>([])
@@ -74,9 +77,14 @@ export default function Invite() {
             if (data.error) {
               setError(data.error)
             } else {
-              setUser (data.user)
+              setUser(data.user)
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
+              
+              // Persist task button states
+              setTaskButton1Claimed(data.user.taskButton1 || false);
+              setTaskButton2Claimed(data.user.taskButton2 || false);
+              setTaskButton3Claimed(data.user.taskButton3 || false);
               
               // Persist UPI IDs from database
               if (data.user.upiIds && data.user.upiIds.length > 0) {
@@ -98,6 +106,40 @@ export default function Invite() {
     }
   }, [])
 
+  // New function to handle task button claiming
+  const handleTaskClaim = async (points: number) => {
+    if (!user) return;
+
+    try {
+      const response = await fetch('/api/claim-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          telegramId: user.telegramId, 
+          taskType: 'invite_friends', 
+          points 
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        if (points === 2) setTaskButton1Claimed(true);
+        if (points === 5) setTaskButton2Claimed(true);
+        if (points === 30) setTaskButton3Claimed(true);
+        
+        setNotification(`Task completed! Earned ₹${points}`);
+        setTimeout(() => {
+          setNotification('');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error claiming task:', error);
+      setNotification('Failed to claim task');
+    }
+  }
+
   const handleInvite = () => {
     if (inviteLink) {
       navigator.clipboard.writeText(inviteLink).then(() => {
@@ -109,13 +151,13 @@ export default function Invite() {
             setButtonState('initial')
             setNotification('')
           }, 300)
-        }, 3000) // Set timeout to 3 seconds
+        }, 3000)
       }).catch(err => {
         console.error('Failed to copy: ', err)
         setNotification('Failed to copy invite link. Please try again.')
         setTimeout(() => {
           setNotification('')
-        }, 3000) // Set timeout to 3 seconds
+        }, 3000)
       })
     }
   }
@@ -127,8 +169,105 @@ export default function Invite() {
       setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
       setTimeout(() => {
         setNotification('')
-      }, 3000) // Set timeout to 3 seconds
+      }, 3000)
     }
+  }
+
+  // Render task buttons with claim functionality
+  const renderTaskButton = () => {
+    if (taskButton1Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
+
+    return (
+      <button 
+        onClick={() => handleTaskClaim(2)}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-55 
+          active:scale-45
+          ${invitedUsers.length < 1 ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+        disabled={invitedUsers.length < 1}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹2 </span>
+      </button>
+    );
+  }
+
+  const renderTaskButton1 = () => {
+    if (taskButton2Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
+
+    return (
+      <button 
+        onClick={() => handleTaskClaim(5)}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-55 
+          active:scale-45
+          ${invitedUsers.length < 3 ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+        disabled={invitedUsers.length < 3}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹5 </span>
+      </button>
+    );
+  }
+
+  const renderTaskButton2 = () => {
+    if (taskButton3Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
+
+    return (
+      <button 
+        onClick={() => handleTaskClaim(30)}
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gradient-to-r from-blue-500 to-indigo-600 
+          text-white 
+          rounded-full 
+          transform transition-all duration-300
+          hover:scale-55 
+          active:scale-45
+          ${invitedUsers.length < 10 ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+        disabled={invitedUsers.length < 10}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹30</span>
+      </button>
+    );
   }
 
   // New function to handle UPI ID saving
@@ -154,14 +293,14 @@ export default function Invite() {
           setNotification('UPI ID saved successfully!');
           setTimeout(() => {
             setNotification('')
-          }, 3000) // Set timeout to 3 seconds
+          }, 3000)
         }
       } catch (error) {
         console.error('Error saving UPI ID:', error);
         setNotification('Failed to save UPI ID');
         setTimeout(() => {
           setNotification('')
-        }, 3000) // Set timeout to 3 seconds
+        }, 3000)
       }
     }
   }
@@ -187,14 +326,14 @@ export default function Invite() {
           setNotification('Payout request submitted!');
           setTimeout(() => {
             setNotification('')
-          }, 3000) // Set timeout to 3 seconds
+          }, 3000)
         }
       } catch (error) {
         console.error('Error requesting payout:', error);
         setNotification('Failed to submit payout request');
         setTimeout(() => {
           setNotification('')
-        }, 3000) // Set timeout to 3 seconds
+        }, 3000)
       }
     }
   }
@@ -208,77 +347,6 @@ export default function Invite() {
   const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
   const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
   const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
-
-  // Render button based on current stage
-  const renderTaskButton = () => {
-    return (
-      <button 
-        onClick={handleButtonAction}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 1 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
-        `}
-        disabled={invitedUsers.length >= 3}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹2 </span>
-      </button>
-    );
-  }
-
-  const renderTaskButton1 = () => {
-    return (
-      <button 
-        onClick={handleButtonAction}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
-        `}
-        disabled={invitedUsers.length >= 3}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹5 </span>
-      </button>
-    );
-  }
-
-  const renderTaskButton2 = () => {
-    return (
-      <button 
-        onClick={handleButtonAction}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
-        `}
-        disabled={invitedUsers.length >= 3}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹30</span>
-      </button>
-    );
-  }
-
   return (
     <div className={containerClass}>
       <div className="backgroundShapes"></div>
