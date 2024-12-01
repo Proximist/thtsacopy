@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Define a type for task conditions to resolve TypeScript error
+type TaskConditions = {
+  [key: string]: {
+    requiredInvites: number;
+    taskKey: string;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Parse the request body
@@ -37,8 +45,8 @@ export async function POST(req: NextRequest) {
     // Validate task completion conditions based on task type
     const completedTasks = user.completedTasks || [];
 
-    // Map task types to their specific conditions
-    const taskConditions = {
+    // Map task types to their specific conditions with explicit typing
+    const taskConditions: TaskConditions = {
       'invite_1_friend': {
         requiredInvites: 1,
         taskKey: 'invite_1_friend'
