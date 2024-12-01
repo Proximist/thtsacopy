@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Users, Edit, Timer } from 'lucide-react'
+import { Users, Edit, Timer, Check } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -41,6 +41,7 @@ export default function Invite() {
   const [buttonStage, setButtonStage] = useState<'check'>('check')
   const [checkMessage, setCheckMessage] = useState('')
   const [buttonState, setButtonState] = useState('initial')
+  const [completedTasks, setCompletedTasks] = useState<string[]>([])
 
   // UPI-related states
   const [upiIds, setUpiIds] = useState<string[]>([])
@@ -70,9 +71,10 @@ export default function Invite() {
             if (data.error) {
               setError(data.error)
             } else {
-              setUser (data.user)
+              setUser(data.user)
               setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
               setInvitedUsers(data.user.invitedUsers || [])
+              setCompletedTasks(data.user.completedTasks || [])
               
               // Persist UPI IDs from database
               if (data.user.upiIds && data.user.upiIds.length > 0) {
@@ -94,122 +96,57 @@ export default function Invite() {
     }
   }, [])
 
-  const handleInvite = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink).then(() => {
-        setButtonState('copied')
-        setNotification('Invite link copied to clipboard!')
-        setTimeout(() => {
-          setButtonState('fadeOut')
-          setTimeout(() => {
-            setButtonState('initial')
-            setNotification('')
-          }, 300)
-        }, 3000) // Set timeout to 3 seconds
-      }).catch(err => {
-        console.error('Failed to copy: ', err)
-        setNotification('Failed to copy invite link. Please try again.')
+  const handleClaimTask = async (taskType: string, points: number) => {
+    try {
+      const response = await fetch('/api/claim-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          telegramId: user?.telegramId, 
+          taskType, 
+          points 
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setCompletedTasks(prev => [...prev, taskType]);
+        setUser(prev => prev ? { ...prev, points: data.points } : null);
+        setNotification(`Task completed! Earned ₹${points}`);
         setTimeout(() => {
           setNotification('')
-        }, 3000) // Set timeout to 3 seconds
-      })
-    }
-  }
-
-  const handleButtonAction = () => {
-    if (invitedUsers.length < 3) {
-      const remainingInvites = 3 - invitedUsers.length
-      setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
-      setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
+        }, 3000)
+      }
+    } catch (error) {
+      console.error('Error claiming task:', error);
+      setNotification('Failed to claim task');
       setTimeout(() => {
         setNotification('')
-      }, 3000) // Set timeout to 3 seconds
+      }, 3000)
     }
   }
 
-  // New function to handle UPI ID saving
-  const handleSaveUpiId = async () => {
-    if (currentUpiId.trim() && user) {
-      try {
-        const response = await fetch('/api/save-upi', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            telegramId: user.telegramId, 
-            upiId: currentUpiId 
-          })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-          setUpiIds(prev => [...prev, currentUpiId]);
-          setIsUpiEditing(false);
-          setCurrentUpiId('');
-          setNotification('UPI ID saved successfully!');
-          setTimeout(() => {
-            setNotification('')
-          }, 3000) // Set timeout to 3 seconds
-        }
-      } catch (error) {
-        console.error('Error saving UPI ID:', error);
-        setNotification('Failed to save UPI ID');
-        setTimeout(() => {
-          setNotification('')
-        }, 3000) // Set timeout to 3 seconds
-      }
-    }
-  }
-
-  // New function to handle payout request
-  const handleRequestPayout = async () => {
-    if (upiIds.length > 0 && user) {
-      try {
-        const response = await fetch('/api/request-payout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            telegramId: user.telegramId, 
-            upiId: upiIds[upiIds.length - 1] 
-          })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-          setHasRequestedPayout(true);
-          setNotification('Payout request submitted!');
-          setTimeout(() => {
-            setNotification('')
-          }, 3000) // Set timeout to 3 seconds
-        }
-      } catch (error) {
-        console.error('Error requesting payout:', error);
-        setNotification('Failed to submit payout request');
-        setTimeout(() => {
-          setNotification('')
-        }, 3000) // Set timeout to 3 seconds
-      }
-    }
-  }
-
-  // Add dark mode classes to elements
-  const containerClass = `container ${isDarkMode ? 'dark-mode' : ''}`
-  const contentClass = `content ${isDarkMode ? 'dark-mode' : ''}`
-  const headerClass = `header ${isDarkMode ? 'dark-mode' : ''}`
-  const titleClass = `title ${isDarkMode ? 'dark-mode' : ''}`
-  const inviteButtonClass = `inviteButton ${buttonState} ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedSectionClass = `invitedSection ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedHeaderClass = `invitedHeader ${isDarkMode ? 'dark-mode' : ''}`
-  const invitedTitleClass = `invitedTitle ${isDarkMode ? 'dark-mode' : ''}`
-
-  // Render button based on current stage
   const renderTaskButton = () => {
+    const isTaskCompleted = completedTasks.includes('invite_1_friend');
+    const invitesNeeded = 1;
+
+    if (isTaskCompleted) {
+      return (
+        <button 
+          className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full opacity-100"
+          disabled
+        >
+          <Check className="w-5 h-5" />
+          <span>Claimed ₹2</span>
+        </button>
+      );
+    }
+
     return (
       <button 
-        onClick={handleButtonAction}
+        onClick={() => handleClaimTask('invite_1_friend', 2)}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
@@ -219,9 +156,9 @@ export default function Invite() {
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
-          ${invitedUsers.length < 1 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+          ${invitedUsers.length >= invitesNeeded ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={invitedUsers.length >= 3}
+        disabled={invitedUsers.length < invitesNeeded}
       >
         <Users className="w-5 h-5" />
         <span>₹2 </span>
@@ -230,9 +167,24 @@ export default function Invite() {
   }
 
   const renderTaskButton1 = () => {
+    const isTaskCompleted = completedTasks.includes('invite_3_friends');
+    const invitesNeeded = 3;
+
+    if (isTaskCompleted) {
+      return (
+        <button 
+          className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full opacity-100"
+          disabled
+        >
+          <Check className="w-5 h-5" />
+          <span>Claimed ₹5</span>
+        </button>
+      );
+    }
+
     return (
       <button 
-        onClick={handleButtonAction}
+        onClick={() => handleClaimTask('invite_3_friends', 5)}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
@@ -242,9 +194,9 @@ export default function Invite() {
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+          ${invitedUsers.length >= invitesNeeded ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={invitedUsers.length >= 3}
+        disabled={invitedUsers.length < invitesNeeded}
       >
         <Users className="w-5 h-5" />
         <span>₹5 </span>
@@ -253,9 +205,24 @@ export default function Invite() {
   }
 
   const renderTaskButton2 = () => {
+    const isTaskCompleted = completedTasks.includes('invite_10_friends');
+    const invitesNeeded = 10;
+
+    if (isTaskCompleted) {
+      return (
+        <button 
+          className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full opacity-100"
+          disabled
+        >
+          <Check className="w-5 h-5" />
+          <span>Claimed ₹30</span>
+        </button>
+      );
+    }
+
     return (
       <button 
-        onClick={handleButtonAction}
+        onClick={() => handleClaimTask('invite_10_friends', 30)}
         className={`
           flex items-center space-x-2 
           px-4 py-2 
@@ -265,9 +232,9 @@ export default function Invite() {
           transform transition-all duration-300
           hover:scale-55 
           active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
+          ${invitedUsers.length >= invitesNeeded ? 'opacity-100' : 'opacity-50 cursor-not-allowed'}
         `}
-        disabled={invitedUsers.length >= 3}
+        disabled={invitedUsers.length < invitesNeeded}
       >
         <Users className="w-5 h-5" />
         <span>₹30</span>
