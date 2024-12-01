@@ -175,101 +175,100 @@ export default function Invite() {
 
   // Render task buttons with claim functionality
   const renderTaskButton = () => {
-    if (taskButton1Claimed) {
-      return (
-        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-          <CheckCircle className="w-5 h-5" />
-          <span>Claimed</span>
-        </div>
-      );
-    }
-
+  if (taskButton1Claimed) {
     return (
-      <button 
-        onClick={() => handleTaskClaim(2)}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 1 ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
-        disabled={invitedUsers.length < 1}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹2 </span>
-      </button>
+      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+        <CheckCircle className="w-5 h-5" />
+        <span>Claimed</span>
+      </div>
     );
   }
 
-  const renderTaskButton1 = () => {
-    if (taskButton2Claimed) {
-      return (
-        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-          <CheckCircle className="w-5 h-5" />
-          <span>Claimed</span>
-        </div>
-      );
-    }
+  return (
+    <button 
+      onClick={() => handleTaskClaim(2)}
+      className={`
+        flex items-center space-x-2 
+        px-4 py-2 
+        bg-gradient-to-r from-blue-500 to-indigo-600 
+        text-white 
+        rounded-full 
+        transform transition-all duration-300
+        hover:scale-55 
+        active:scale-45
+        ${invitedUsers.length < 1 ? 'opacity-50 cursor-not-allowed' : ''}
+      `}
+      disabled={invitedUsers.length < 1 || taskButton1Claimed}
+    >
+      <Users className="w-5 h-5" />
+      <span>₹2 </span>
+    </button>
+  );
+}
 
+const renderTaskButton1 = () => {
+  if (taskButton2Claimed) {
     return (
-      <button 
-        onClick={() => handleTaskClaim(5)}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 3 ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
-        disabled={invitedUsers.length < 3}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹5 </span>
-      </button>
+      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+        <CheckCircle className="w-5 h-5" />
+        <span>Claimed</span>
+      </div>
     );
   }
 
-  const renderTaskButton2 = () => {
-    if (taskButton3Claimed) {
-      return (
-        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-          <CheckCircle className="w-5 h-5" />
-          <span>Claimed</span>
-        </div>
-      );
-    }
+  return (
+    <button 
+      onClick={() => handleTaskClaim(5)}
+      className={`
+        flex items-center space-x-2 
+        px-4 py-2 
+        bg-gradient-to-r from-blue-500 to-indigo-600 
+        text-white 
+        rounded-full 
+        transform transition-all duration-300
+        hover:scale-55 
+        active:scale-45
+        ${invitedUsers.length < 3 ? 'opacity-50 cursor-not-allowed' : ''}
+      `}
+      disabled={invitedUsers.length < 3 || taskButton2Claimed}
+    >
+      <Users className="w-5 h-5" />
+      <span>₹5 </span>
+    </button>
+  );
+}
 
+const renderTaskButton2 = () => {
+  if (taskButton3Claimed) {
     return (
-      <button 
-        onClick={() => handleTaskClaim(30)}
-        className={`
-          flex items-center space-x-2 
-          px-4 py-2 
-          bg-gradient-to-r from-blue-500 to-indigo-600 
-          text-white 
-          rounded-full 
-          transform transition-all duration-300
-          hover:scale-55 
-          active:scale-45
-          ${invitedUsers.length < 10 ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
-        disabled={invitedUsers.length < 10}
-      >
-        <Users className="w-5 h-5" />
-        <span>₹30</span>
-      </button>
+      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+        <CheckCircle className="w-5 h-5" />
+        <span>Claimed</span>
+      </div>
     );
   }
 
+  return (
+    <button 
+      onClick={() => handleTaskClaim(30)}
+      className={`
+        flex items-center space-x-2 
+        px-4 py-2 
+        bg-gradient-to-r from-blue-500 to-indigo-600 
+        text-white 
+        rounded-full 
+        transform transition-all duration-300
+        hover:scale-55 
+        active:scale-45
+        ${invitedUsers.length < 10 ? 'opacity-50 cursor-not-allowed' : ''}
+      `}
+      disabled={invitedUsers.length < 10 || taskButton3Claimed}
+    >
+      <Users className="w-5 h-5" />
+      <span>₹30</span>
+    </button>
+  );
+}
   // New function to handle UPI ID saving
   const handleSaveUpiId = async () => {
     if (currentUpiId.trim() && user) {
