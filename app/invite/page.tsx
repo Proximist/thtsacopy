@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { WebApp } from '@twa-dev/types'
-import { Users, Edit, Timer, CheckCircle } from 'lucide-react'
+import { Users, Edit, Timer, CheckCircle, Wallet } from 'lucide-react'
 import './invite.css'
 import '../globals.css'
 
@@ -43,6 +43,7 @@ export default function Invite() {
   const [isCopied, setIsCopied] = useState(false)
   const [buttonState, setButtonState] = useState('initial')
   const [checkMessage, setCheckMessage] = useState('')
+  const [withdrawBalance, setWithdrawBalance] = useState(0)
 
   // Task button states
   const [taskButton1Claimed, setTaskButton1Claimed] = useState(false);
@@ -106,7 +107,7 @@ export default function Invite() {
     }
   }, [])
 
-  // New function to handle task button claiming
+ // Modify handleTaskClaim to update balance
   const handleTaskClaim = async (points: number) => {
     if (!user) return;
 
@@ -124,20 +125,23 @@ export default function Invite() {
       });
       
       const data = await response.json();
-    if (data.success) {
-      if (points === 2) {
-        setTaskButton1Claimed(true);
-        // Optionally, update the user object to reflect the change
-        setUser(prev => prev ? {...prev, taskButton1: true} : null);
-      }
-      if (points === 5) {
-        setTaskButton2Claimed(true);
-        setUser(prev => prev ? {...prev, taskButton2: true} : null);
-      }
-      if (points === 30) {
-        setTaskButton3Claimed(true);
-        setUser(prev => prev ? {...prev, taskButton3: true} : null);
-      }
+      if (data.success) {
+        // Update balance based on claimed tasks
+        if (points === 2) {
+          setTaskButton1Claimed(true);
+          setWithdrawBalance(2);
+          setUser(prev => prev ? {...prev, taskButton1: true} : null);
+        }
+        if (points === 5) {
+          setTaskButton2Claimed(true);
+          setWithdrawBalance(7);
+          setUser(prev => prev ? {...prev, taskButton2: true} : null);
+        }
+        if (points === 30) {
+          setTaskButton3Claimed(true);
+          setWithdrawBalance(37);
+          setUser(prev => prev ? {...prev, taskButton3: true} : null);
+        }
         
         setNotification(`Task completed! Earned ₹${points}`);
         setTimeout(() => {
@@ -500,72 +504,91 @@ const renderTaskButton2 = () => {
 )}
 
             {/* UPI Payout Section */}
-            {(invitedUsers.length === 1 || invitedUsers.length === 3 || invitedUsers.length === 10) && (
-              <div className="mt-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden">
-                <div className="p-4 flex flex-row items-center justify-between">
-                  <h3 className="text-2xl font-bold text-white">UPI Payout</h3>
-                  {!isUpiEditing && (
-                    <button
-                      onClick={() => setIsUpiEditing(true)}
-                      className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 rounded-full transition-colors"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-                <div className="p-4">
-                  {isUpiEditing ? (
-                    <div className="space-y-4">
-                      <input
-                        type="text"
-                        placeholder="Enter UPI ID"
-                        value={currentUpiId}
-                        onChange={(e) => setCurrentUpiId(e.target.value)}
-                        className="w-full p-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/50"
-                      />
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            handleSaveUpiId();
-                            handleRequestPayout();
-                          }}
-                          className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors"
-                          disabled={hasRequestedPayout}
-                        >
-                          {hasRequestedPayout ? 'Processing' : 'Request Payout'}
-                        </button>
-                        <button
-                          onClick={() => setIsUpiEditing(false)}
-                          className="border border-white/10 text-white hover:bg-white/5 py-2 px-4 rounded-md transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/70">
-                        {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
-                      </span>
-                      {!hasRequestedPayout ? (
-                        <button
-                          onClick={handleRequestPayout}
-                          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition-colors"
-                          disabled={hasRequestedPayout || upiIds.length === 0}
-                        >
-                          Request Payout
-                        </button>
-                      ) : (
-                        <div className="flex items-center space-x-2 text-yellow-400">
-                          <Timer className="w-5 h-5" />
-                          <span>Processing</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+      {(invitedUsers.length === 1 || invitedUsers.length === 3 || invitedUsers.length === 10) && (
+        <div className="mt-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <Wallet className="w-8 h-8 text-blue-400" />
+                <h3 className="text-2xl font-bold text-white">UPI Payout</h3>
               </div>
-            )}
+              {!isUpiEditing && (
+                <button
+                  onClick={() => setIsUpiEditing(true)}
+                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 p-2 rounded-full transition-colors"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Balance Display */}
+            <div className="bg-white/10 rounded-2xl p-6 mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-white/70 text-sm mb-1">Available Balance</p>
+                <p className="text-6xl font-bold text-white tracking-tighter">
+                  ₹{withdrawBalance}
+                </p>
+              </div>
+              <div className="bg-blue-500/20 rounded-full p-3">
+                <Wallet className="w-10 h-10 text-blue-300" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {isUpiEditing ? (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Enter UPI ID"
+                    value={currentUpiId}
+                    onChange={(e) => setCurrentUpiId(e.target.value)}
+                    className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        handleSaveUpiId();
+                        handleRequestPayout();
+                      }}
+                      className="flex-grow bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all"
+                      disabled={hasRequestedPayout}
+                    >
+                      {hasRequestedPayout ? 'Processing' : 'Request Payout'}
+                    </button>
+                    <button
+                      onClick={() => setIsUpiEditing(false)}
+                      className="border border-white/20 text-white hover:bg-white/5 py-3 px-6 rounded-xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-white/70">
+                    {upiIds.length > 0 ? upiIds[upiIds.length - 1] : 'No UPI ID saved'}
+                  </span>
+                  {!hasRequestedPayout ? (
+                    <button
+                      onClick={handleRequestPayout}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all"
+                      disabled={hasRequestedPayout || upiIds.length === 0 || withdrawBalance === 0}
+                    >
+                      Request Payout
+                    </button>
+                  ) : (
+                    <div className="flex items-center space-x-2 text-yellow-400">
+                      <Timer className="w-5 h-5" />
+                      <span>Processing</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
             
             {notification && (
               <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
