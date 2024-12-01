@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Define a type for task conditions to resolve TypeScript error
-type TaskConditions = {
-  [key: string]: {
-    requiredInvites: number;
-    taskKey: string;
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     // Parse the request body
@@ -30,7 +22,10 @@ export async function POST(req: NextRequest) {
         telegramId: true, 
         points: true, 
         invitedUsers: true,
-        completedTasks: true 
+        completedTasks: true,
+        taskButton1: true,
+        taskButton2: true,
+        taskButton3: true
       }
     });
 
@@ -42,75 +37,64 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
 
-    // Validate task completion conditions based on task type
-    const completedTasks = user.completedTasks || [];
-
-    // Map task types to their specific conditions with explicit typing
-    const taskConditions: TaskConditions = {
-      'invite_1_friend': {
-        requiredInvites: 1,
-        taskKey: 'invite_1_friend'
-      },
-      'invite_3_friends': {
-        requiredInvites: 3,
-        taskKey: 'invite_3_friends'
-      },
-      'invite_10_friends': {
-        requiredInvites: 10,
-        taskKey: 'invite_10_friends'
+    // Validate task completion conditions
+    if (taskType === 'invite_friends') {
+      // Different logic for each task button
+      let updateField = '';
+      if (taskType === 'invite_friends' && points === 2) {
+        // First task: 1 invite
+        if (user.invitedUsers.length < 1 || user.taskButton1) {
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Task not completed or already claimed' 
+          }, { status: 400 });
+        }
+        updateField = 'taskButton1';
+      } else if (taskType === 'invite_friends' && points === 5) {
+        // Second task: 3 invites
+        if (user.invitedUsers.length < 3 || user.taskButton2) {
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Task not completed or already claimed' 
+          }, { status: 400 });
+        }
+        updateField = 'taskButton2';
+      } else if (taskType === 'invite_friends' && points === 30) {
+        // Third task: 10 invites
+        if (user.invitedUsers.length < 10 || user.taskButton3) {
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Task not completed or already claimed' 
+          }, { status: 400 });
+        }
+        updateField = 'taskButton3';
       }
-    };
 
-    const taskConfig = taskConditions[taskType];
+      // Update user with points and mark task button as claimed
+      const updateData: any = {
+        points: {
+          increment: points
+        }
+      };
+      updateData[updateField] = true;
 
-    if (!taskConfig) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid task type' 
-      }, { status: 400 });
-    }
+      const updatedUser = await prisma.user.update({
+        where: { telegramId },
+        data: updateData
+      });
 
-    // Check if user has met invite requirements
-    if (!user.invitedUsers || user.invitedUsers.length < taskConfig.requiredInvites) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Not enough invited friends' 
-      }, { status: 400 });
-    }
-
-    // Check if task has already been completed
-    if (completedTasks.includes(taskConfig.taskKey)) {
       return NextResponse.json({ 
         success: true, 
-        points: user.points,
-        taskStatus: 'done'
+        points: updatedUser.points,
+        taskStatus: 'done' 
       });
     }
 
-    // Update user with points, mark task as completed, and create claimed task record
-    const updatedUser = await prisma.user.update({
-      where: { telegramId },
-      data: {
-        points: {
-          increment: points
-        },
-        completedTasks: {
-          push: taskConfig.taskKey
-        },
-        claimedTasks: {
-          create: {
-            taskType: taskType,
-            points: points
-          }
-        }
-      }
-    });
-
+    // Handle other task types if needed in the future
     return NextResponse.json({ 
-      success: true, 
-      points: updatedUser.points,
-      taskStatus: 'done' 
-    });
+      success: false, 
+      error: 'Invalid task type' 
+    }, { status: 400 });
 
   } catch (error) {
     console.error('Error claiming task points:', error);
