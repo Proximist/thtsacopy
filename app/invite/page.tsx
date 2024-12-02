@@ -45,6 +45,28 @@ export default function Invite() {
   const [checkMessage, setCheckMessage] = useState('')
   const [withdrawBalance, setWithdrawBalance] = useState(0)
 
+  const handleInvite = () => {
+  if (inviteLink) {
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setButtonState('copied')
+      setNotification('Invite link copied to clipboard!')
+      setTimeout(() => {
+        setButtonState('fadeOut')
+        setTimeout(() => {
+          setButtonState('initial')
+          setNotification('')
+        }, 300)
+      }, 3000)
+    }).catch(err => {
+      console.error('Failed to copy: ', err)
+      setNotification('Failed to copy invite link. Please try again.')
+      setTimeout(() => {
+        setNotification('')
+      }, 3000)
+    })
+  }
+}
+
   // Task button states
   const [taskButton1Claimed, setTaskButton1Claimed] = useState(false);
   const [taskButton2Claimed, setTaskButton2Claimed] = useState(false);
