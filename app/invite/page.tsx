@@ -128,54 +128,57 @@ export default function Invite() {
     setError('This app should be opened in Telegram')
   }
 }, [])
- // Modify handleTaskClaim to update balance
-const handleTaskClaim = async (points: number, taskType: string) => {
-    if (!user) return;
+ // Modify handleTaskClaim to update balanceconst handleTaskClaim = async (points: number, taskType: string) => {
+  if (!user) return;
 
-    try {
-      const response = await fetch('/api/claim-task', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          telegramId: user.telegramId, 
-          taskType, 
-          points 
-        })
-      });
+  try {
+    const response = await fetch('/api/claim-task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        telegramId: user.telegramId, 
+        taskType, 
+        points 
+      })
+    });
 
-      const data = await response.json();
-      if (data.success) {
-        // Update the user's balance and mark the specific task as claimed
-        setUser(prev => prev ? {
-          ...prev, 
-          points: prev.points + points, 
-          [taskType]: true
-        } : null);
-        
-        // Update the specific task button claimed state
-        if (taskType === 'taskButton1') setTaskButton1Claimed(true);
-        if (taskType === 'taskButton2') setTaskButton2Claimed(true);
-        if (taskType === 'taskButton3') setTaskButton3Claimed(true);
-        
-        // Update withdraw balance
-        setWithdrawBalance(prevBalance => prevBalance + points);
-        
-        // Show notification
-        setNotification(`Task completed! Earned ₹${points}`);
-        setTimeout(() => {
-          setNotification('')
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Error claiming task:', error);
-      setNotification('Failed to claim task');
-      setTimeout(() => {
-        setNotification('')
-      }, 3000);
+    const data = await response.json();
+    
+    // Add console log to debug
+    console.log('Claim task response:', data);
+
+    if (data.success) {
+      // Update user state
+      setUser(prev => prev ? {
+        ...prev, 
+        points: (prev.points || 0) + points,
+        [taskType]: true
+      } : null);
+      
+      // Update specific task claimed state
+      if (taskType === 'taskButton1') setTaskButton1Claimed(true);
+      if (taskType === 'taskButton2') setTaskButton2Claimed(true);
+      if (taskType === 'taskButton3') setTaskButton3Claimed(true);
+      
+      // Update withdraw balance
+      setWithdrawBalance(prev => prev + points);
+      
+      // Show notification
+      setNotification(`Task completed! Earned ₹${points}`);
+      setTimeout(() => setNotification(''), 3000);
+    } else {
+      // Handle potential error from server
+      setNotification(data.message || 'Failed to claim task');
+      setTimeout(() => setNotification(''), 3000);
     }
-  };
+  } catch (error) {
+    console.error('Error claiming task:', error);
+    setNotification('Failed to claim task');
+    setTimeout(() => setNotification(''), 3000);
+  }
+};
 
   // Render first task button with explicit claiming
   const renderTaskButton = () => {
