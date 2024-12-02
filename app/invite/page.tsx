@@ -128,7 +128,8 @@ export default function Invite() {
     setError('This app should be opened in Telegram')
   }
 }, [])
- // Modify handleTaskClaim to update balanceconst handleTaskClaim = async (points: number, taskType: string) => {
+ // Modify handleTaskClaim to update balance
+  const handleTaskClaim = async (points: number, taskType: string) => {
   if (!user) return;
 
   try {
