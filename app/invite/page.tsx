@@ -13,7 +13,7 @@ type User = {
   username?: string;
   firstName?: string;
   lastName?: string;
-  points?: number;
+  points: number;
   invitedUsers?: string[];
   invitedBy?: string;
   currentTime?: Date;
