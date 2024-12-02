@@ -57,103 +57,106 @@ export default function Invite() {
   const [hasRequestedPayout, setHasRequestedPayout] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp
-      tg.ready()
-      const isDark = tg.colorScheme === 'dark'
-      setIsDarkMode(isDark)
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    const tg = window.Telegram.WebApp
+    tg.ready()
+    const isDark = tg.colorScheme === 'dark'
+    setIsDarkMode(isDark)
 
-      const initDataUnsafe = tg.initDataUnsafe || {}
+    const initDataUnsafe = tg.initDataUnsafe || {}
 
-      if (initDataUnsafe.user) {
-        fetch('/api/user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ...initDataUnsafe.user, start_param: initDataUnsafe.start_param || null })
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setError(data.error)
-            } else {
-              setUser(data.user)
-              setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
-              setInvitedUsers(data.user.invitedUsers || [])
-              
-              // Persist task button states
-              setTaskButton1Claimed(data.user.taskButton1 || false);
-              setTaskButton2Claimed(data.user.taskButton2 || false);
-              setTaskButton3Claimed(data.user.taskButton3 || false);
-              
-              // Persist UPI IDs from database
-              if (data.user.upiIds && data.user.upiIds.length > 0) {
-                setUpiIds(data.user.upiIds)
-              }
-              
-              // Check if payout request exists
-              setHasRequestedPayout(data.user.requests && data.user.requests.length > 0)
-            }
-          })
-          .catch(() => {
-            setError('Failed to fetch user data')
-          })
-      } else {
-        setError('No user data available')
-      }
-    } else {
-      setError('This app should be opened in Telegram')
-    }
-  }, [])
-
- // Modify handleTaskClaim to update balance
-  const handleTaskClaim = async (points: number) => {
-    if (!user) return;
-
-    try {
-      const response = await fetch('/api/claim-task', {
+    if (initDataUnsafe.user) {
+      fetch('/api/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          telegramId: user.telegramId, 
-          taskType: 'invite_friends', 
-          points 
+        body: JSON.stringify({ ...initDataUnsafe.user, start_param: initDataUnsafe.start_param || null })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            setError(data.error)
+          } else {
+            setUser(data.user)
+            setInviteLink(`http://t.me/miniappw21bot/cmos1/start?startapp=${data.user.telegramId}`)
+            setInvitedUsers(data.user.invitedUsers || [])
+            
+            // Calculate balance based on completed tasks
+            let calculatedBalance = 0;
+            if (data.user.taskButton1) calculatedBalance += 2;
+            if (data.user.taskButton2) calculatedBalance += 5;
+            if (data.user.taskButton3) calculatedBalance += 30;
+            
+            setWithdrawBalance(calculatedBalance);
+            
+            // Persist task button states
+            setTaskButton1Claimed(data.user.taskButton1 || false);
+            setTaskButton2Claimed(data.user.taskButton2 || false);
+            setTaskButton3Claimed(data.user.taskButton3 || false);
+          }
         })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        // Update balance based on claimed tasks
-        if (points === 2) {
-          setTaskButton1Claimed(true);
-          setWithdrawBalance(2);
-          setUser(prev => prev ? {...prev, taskButton1: true} : null);
-        }
-        if (points === 5) {
-          setTaskButton2Claimed(true);
-          setWithdrawBalance(7);
-          setUser(prev => prev ? {...prev, taskButton2: true} : null);
-        }
-        if (points === 30) {
-          setTaskButton3Claimed(true);
-          setWithdrawBalance(37);
-          setUser(prev => prev ? {...prev, taskButton3: true} : null);
-        }
-        
-        setNotification(`Task completed! Earned ₹${points}`);
-        setTimeout(() => {
-          setNotification('');
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Error claiming task:', error);
-      setNotification('Failed to claim task');
+        .catch(() => {
+          setError('Failed to fetch user data')
+        })
+    } else {
+      setError('No user data available')
     }
+  } else {
+    setError('This app should be opened in Telegram')
   }
+}, [])
+ // Modify handleTaskClaim to update balance
+  const handleTaskClaim = async (points: number) => {
+  if (!user) return;
 
+  try {
+    const response = await fetch('/api/claim-task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        telegramId: user.telegramId, 
+        taskType: 'invite_friends', 
+        points 
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      // Calculate new balance by adding current balance to new points
+      let newBalance = withdrawBalance;
+      
+      if (points === 2 && !taskButton1Claimed) {
+        setTaskButton1Claimed(true);
+        newBalance += 2;
+        setUser(prev => prev ? {...prev, taskButton1: true} : null);
+      }
+      if (points === 5 && !taskButton2Claimed) {
+        setTaskButton2Claimed(true);
+        newBalance += 5;
+        setUser(prev => prev ? {...prev, taskButton2: true} : null);
+      }
+      if (points === 30 && !taskButton3Claimed) {
+        setTaskButton3Claimed(true);
+        newBalance += 30;
+        setUser(prev => prev ? {...prev, taskButton3: true} : null);
+      }
+      
+      // Set the new cumulative balance
+      setWithdrawBalance(newBalance);
+      
+      setNotification(`Task completed! Earned ₹${points}`);
+      setTimeout(() => {
+        setNotification('');
+      }, 3000);
+    }
+  } catch (error) {
+    console.error('Error claiming task:', error);
+    setNotification('Failed to claim task');
+  }
+}
   const handleInvite = () => {
     if (inviteLink) {
       navigator.clipboard.writeText(inviteLink).then(() => {
