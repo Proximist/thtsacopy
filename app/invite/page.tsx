@@ -108,163 +108,207 @@ export default function Invite() {
 }, [])
  // Modify handleTaskClaim to update balance
 const handleTaskClaim = async (points: number, taskType: string) => {
-  if (!user) return;
+    if (!user) return;
 
-  try {
-    const response = await fetch('/api/claim-task', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        telegramId: user.telegramId, 
-        taskType, 
-        points 
-      })
-    });
+    try {
+      const response = await fetch('/api/claim-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          telegramId: user.telegramId, 
+          taskType, 
+          points 
+        })
+      });
 
-    const data = await response.json();
-    if (data.success) {
-      // Update the user's balance and task button states
-      setUser(prev => prev ? {...prev, points: prev.points + points, [taskType]: true} : null);
-      setWithdrawBalance(prevBalance => prevBalance + points);
-    }
-  } catch (error) {
-    console.error('Error claiming task:', error);
-  }
-};
-  const handleInvite = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink).then(() => {
-        setButtonState('copied')
-        setNotification('Invite link copied to clipboard!')
-        setTimeout(() => {
-          setButtonState('fadeOut')
-          setTimeout(() => {
-            setButtonState('initial')
-            setNotification('')
-          }, 300)
-        }, 3000)
-      }).catch(err => {
-        console.error('Failed to copy: ', err)
-        setNotification('Failed to copy invite link. Please try again.')
+      const data = await response.json();
+      if (data.success) {
+        // Update the user's balance and mark the specific task as claimed
+        setUser(prev => prev ? {
+          ...prev, 
+          points: prev.points + points, 
+          [taskType]: true
+        } : null);
+        
+        // Update the specific task button claimed state
+        if (taskType === 'taskButton1') setTaskButton1Claimed(true);
+        if (taskType === 'taskButton2') setTaskButton2Claimed(true);
+        if (taskType === 'taskButton3') setTaskButton3Claimed(true);
+        
+        // Update withdraw balance
+        setWithdrawBalance(prevBalance => prevBalance + points);
+        
+        // Show notification
+        setNotification(`Task completed! Earned ₹${points}`);
         setTimeout(() => {
           setNotification('')
-        }, 3000)
-      })
-    }
-  }
-
-  const handleButtonAction = () => {
-    if (invitedUsers.length < 3) {
-      const remainingInvites = 3 - invitedUsers.length
-      setCheckMessage(`You need to invite ${remainingInvites} more friend${remainingInvites !== 1 ? 's' : ''} to complete this task.`)
-      setNotification(`${remainingInvites} more invite${remainingInvites !== 1 ? 's' : ''} needed!`)
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error claiming task:', error);
+      setNotification('Failed to claim task');
       setTimeout(() => {
         setNotification('')
-      }, 3000)
+      }, 3000);
     }
-  }
+  };
 
-  // Render task buttons with claim functionality
+  // Render first task button with explicit claiming
   const renderTaskButton = () => {
-  // Always show as claimed if taskButton1Claimed is true
-  if (taskButton1Claimed || invitedUsers.length >= 1) {
+    // If task is already claimed from database or user has 1+ invites
+    if (taskButton1Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
+
+    // If user has at least 1 invited user, show claimable button
+    if (invitedUsers.length >= 1) {
+      return (
+        <button 
+          onClick={() => handleTaskClaim(2, 'taskButton1')}
+          className={`
+            flex items-center space-x-2 
+            px-4 py-2 
+            bg-gradient-to-r from-blue-500 to-indigo-600 
+            text-white 
+            rounded-full 
+            transform transition-all duration-300
+            hover:scale-105 
+            active:scale-95
+          `}
+        >
+          <Users className="w-5 h-5" />
+          <span>Claim ₹2</span>
+        </button>
+      );
+    }
+
+    // If no invites, show disabled state
     return (
-      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-        <CheckCircle className="w-5 h-5" />
-        <span>Claimed</span>
-      </div>
+      <button 
+        disabled
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gray-500 
+          text-white/50 
+          rounded-full 
+          opacity-50 
+          cursor-not-allowed
+        `}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹2</span>
+      </button>
     );
   }
 
-  return (
-    <button 
-      onClick={() => handleTaskClaim(2)}
-      className={`
-        flex items-center space-x-2 
-        px-4 py-2 
-        bg-gradient-to-r from-blue-500 to-indigo-600 
-        text-white 
-        rounded-full 
-        transform transition-all duration-300
-        hover:scale-55 
-        active:scale-45
-        ${invitedUsers.length < 1 ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
-      disabled={invitedUsers.length < 1}
-    >
-      <Users className="w-5 h-5" />
-      <span>₹2 </span>
-    </button>
-  );
-}
+  // Similarly modify renderTaskButton1 and renderTaskButton2
+  const renderTaskButton1 = () => {
+    if (taskButton2Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
 
-const renderTaskButton1 = () => {
-  // Always show as claimed if taskButton2Claimed is true or invited users meet the condition
-  if (taskButton2Claimed || invitedUsers.length >= 3) {
+    if (invitedUsers.length >= 3) {
+      return (
+        <button 
+          onClick={() => handleTaskClaim(5, 'taskButton2')}
+          className={`
+            flex items-center space-x-2 
+            px-4 py-2 
+            bg-gradient-to-r from-blue-500 to-indigo-600 
+            text-white 
+            rounded-full 
+            transform transition-all duration-300
+            hover:scale-105 
+            active:scale-95
+          `}
+        >
+          <Users className="w-5 h-5" />
+          <span>Claim ₹5</span>
+        </button>
+      );
+    }
+
     return (
-      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-        <CheckCircle className="w-5 h-5" />
-        <span>Claimed</span>
-      </div>
+      <button 
+        disabled
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gray-500 
+          text-white/50 
+          rounded-full 
+          opacity-50 
+          cursor-not-allowed
+        `}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹5</span>
+      </button>
     );
   }
 
-  return (
-    <button 
-      onClick={() => handleTaskClaim(5)}
-      className={`
-        flex items-center space-x-2 
-        px-4 py-2 
-        bg-gradient-to-r from-blue-500 to-indigo-600 
-        text-white 
-        rounded-full 
-        transform transition-all duration-300
-        hover:scale-55 
-        active:scale-45
-        ${invitedUsers.length < 3 ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
-      disabled={invitedUsers.length < 3}
-    >
-      <Users className="w-5 h-5" />
-      <span>₹5 </span>
-    </button>
-  );
-}
+  const renderTaskButton2 = () => {
+    if (taskButton3Claimed) {
+      return (
+        <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
+          <CheckCircle className="w-5 h-5" />
+          <span>Claimed</span>
+        </div>
+      );
+    }
 
-const renderTaskButton2 = () => {
-  // Always show as claimed if taskButton3Claimed is true or invited users meet the condition
-  if (taskButton3Claimed || invitedUsers.length >= 10) {
+    if (invitedUsers.length >= 10) {
+      return (
+        <button 
+          onClick={() => handleTaskClaim(30, 'taskButton3')}
+          className={`
+            flex items-center space-x-2 
+            px-4 py-2 
+            bg-gradient-to-r from-blue-500 to-indigo-600 
+            text-white 
+            rounded-full 
+            transform transition-all duration-300
+            hover:scale-105 
+            active:scale-95
+          `}
+        >
+          <Users className="w-5 h-5" />
+          <span>Claim ₹30</span>
+        </button>
+      );
+    }
+
     return (
-      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full">
-        <CheckCircle className="w-5 h-5" />
-        <span>Claimed</span>
-      </div>
+      <button 
+        disabled
+        className={`
+          flex items-center space-x-2 
+          px-4 py-2 
+          bg-gray-500 
+          text-white/50 
+          rounded-full 
+          opacity-50 
+          cursor-not-allowed
+        `}
+      >
+        <Users className="w-5 h-5" />
+        <span>₹30</span>
+      </button>
     );
   }
-
-  return (
-    <button 
-      onClick={() => handleTaskClaim(30)}
-      className={`
-        flex items-center space-x-2 
-        px-4 py-2 
-        bg-gradient-to-r from-blue-500 to-indigo-600 
-        text-white 
-        rounded-full 
-        transform transition-all duration-300
-        hover:scale-55 
-        active:scale-45
-        ${invitedUsers.length < 10 ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
-      disabled={invitedUsers.length < 10}
-    >
-      <Users className="w-5 h-5" />
-      <span>₹30</span>
-    </button>
-  );
-}
   // New function to handle UPI ID saving
   const handleSaveUpiId = async () => {
     if (currentUpiId.trim() && user) {
