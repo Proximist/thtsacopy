@@ -530,7 +530,7 @@ const renderTaskButton2 = () => {
               <div>
                 <p className="text-white/70 text-sm mb-1">Available Balance</p>
                 <p className="text-6xl font-bold text-white tracking-tighter">
-                  ₹{withdrawBalance}
+                  ₹{newBalance}
                 </p>
               </div>
               <div className="bg-blue-500/20 rounded-full p-3">
