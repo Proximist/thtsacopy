@@ -107,7 +107,7 @@ export default function Invite() {
   }
 }, [])
  // Modify handleTaskClaim to update balance
-  const handleTaskClaim = async (points: number) => {
+const handleTaskClaim = async (points: number) => {
   if (!user) return;
 
   try {
@@ -125,27 +125,22 @@ export default function Invite() {
     
     const data = await response.json();
     if (data.success) {
-      // Calculate new balance by adding current balance to new points
-      let newBalance = withdrawBalance;
-      
+      // Instead of replacing, add to the existing withdrawBalance
       if (points === 2 && !taskButton1Claimed) {
         setTaskButton1Claimed(true);
-        newBalance += 2;
+        setWithdrawBalance(prevBalance => prevBalance + 2);
         setUser(prev => prev ? {...prev, taskButton1: true} : null);
       }
       if (points === 5 && !taskButton2Claimed) {
         setTaskButton2Claimed(true);
-        newBalance += 5;
+        setWithdrawBalance(prevBalance => prevBalance + 5);
         setUser(prev => prev ? {...prev, taskButton2: true} : null);
       }
       if (points === 30 && !taskButton3Claimed) {
         setTaskButton3Claimed(true);
-        newBalance += 30;
+        setWithdrawBalance(prevBalance => prevBalance + 30);
         setUser(prev => prev ? {...prev, taskButton3: true} : null);
       }
-      
-      // Set the new cumulative balance
-      setWithdrawBalance(newBalance);
       
       setNotification(`Task completed! Earned ₹${points}`);
       setTimeout(() => {
@@ -530,7 +525,7 @@ const renderTaskButton2 = () => {
               <div>
                 <p className="text-white/70 text-sm mb-1">Available Balance</p>
                 <p className="text-6xl font-bold text-white tracking-tighter">
-                  ₹{newBalance}
+                  ₹{withdrawBalance}
                 </p>
               </div>
               <div className="bg-blue-500/20 rounded-full p-3">
