@@ -107,7 +107,7 @@ export default function Invite() {
   }
 }, [])
  // Modify handleTaskClaim to update balance
-const handleTaskClaim = async (points: number) => {
+const handleTaskClaim = async (points: number, taskType: string) => {
   if (!user) return;
 
   try {
@@ -118,40 +118,21 @@ const handleTaskClaim = async (points: number) => {
       },
       body: JSON.stringify({ 
         telegramId: user.telegramId, 
-        taskType: 'invite_friends', 
+        taskType, 
         points 
       })
     });
-    
+
     const data = await response.json();
     if (data.success) {
-      // Instead of replacing, add to the existing withdrawBalance
-      if (points === 2 && !taskButton1Claimed) {
-        setTaskButton1Claimed(true);
-        setWithdrawBalance(prevBalance => prevBalance + 2);
-        setUser(prev => prev ? {...prev, taskButton1: true} : null);
-      }
-      if (points === 5 && !taskButton2Claimed) {
-        setTaskButton2Claimed(true);
-        setWithdrawBalance(prevBalance => prevBalance + 5);
-        setUser(prev => prev ? {...prev, taskButton2: true} : null);
-      }
-      if (points === 30 && !taskButton3Claimed) {
-        setTaskButton3Claimed(true);
-        setWithdrawBalance(prevBalance => prevBalance + 30);
-        setUser(prev => prev ? {...prev, taskButton3: true} : null);
-      }
-      
-      setNotification(`Task completed! Earned ₹${points}`);
-      setTimeout(() => {
-        setNotification('');
-      }, 3000);
+      // Update the user's balance and task button states
+      setUser(prev => prev ? {...prev, points: prev.points + points, [taskType]: true} : null);
+      setWithdrawBalance(prevBalance => prevBalance + points);
     }
   } catch (error) {
     console.error('Error claiming task:', error);
-    setNotification('Failed to claim task');
   }
-}
+};
   const handleInvite = () => {
     if (inviteLink) {
       navigator.clipboard.writeText(inviteLink).then(() => {
